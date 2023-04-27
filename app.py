@@ -1,5 +1,7 @@
+import io
 import os
 
+from docxtpl import DocxTemplate
 import openai
 import streamlit as st
 
@@ -40,11 +42,24 @@ if "content_dict" not in st.session_state:
 if "max_allowable_tokens" not in st.session_state:
     st.session_state.max_allowable_tokens = 8192
 
+# parameters for word document
 if "title_response" not in st.session_state:
     st.session_state.title_response = None
 
 if "subtitle_response" not in st.session_state:
     st.session_state.subtitle_response = None
+
+if "photo" not in st.session_state:
+    st.session_state.photo = None
+
+if "photo_link" not in st.session_state:
+    st.session_state.photo_link = None
+
+if "photo_site_name" not in st.session_state:
+    st.session_state.photo_site_name = None
+
+if "image_caption" not in st.session_state:
+    st.session_state.image_caption = None
 
 if "science_response" not in st.session_state:
     st.session_state.science_response = None
@@ -55,12 +70,26 @@ if "impact_response" not in st.session_state:
 if "summary_response" not in st.session_state:
     st.session_state.summary_response = None
 
+if "funding" not in st.session_state:
+    st.session_state.funding = None
+
+if "citation" not in st.session_state:
+    st.session_state.citation = None
+
+if "related_links" not in st.session_state:
+    st.session_state.related_links = None
+
+# additional word doc content that is not in the template
 if "figure_response" not in st.session_state:
     st.session_state.figure_response = None
 
 if "caption_response" not in st.session_state:
     st.session_state.caption_response = None
 
+if "output_file" not in st.session_state:
+    st.session_state.output_file = None
+
+# parameters for the ppt slide
 if "objective_response" not in st.session_state:
     st.session_state.objective_response = None
 
@@ -69,6 +98,7 @@ if "approach_response" not in st.session_state:
 
 if "ppt_impact_response" not in st.session_state:
     st.session_state.ppt_impact_response = None
+
 
 # Force responsive layout for columns also on mobile
 st.write(
@@ -116,6 +146,8 @@ if uploaded_file is not None:
     elif uploaded_file.type == "application/pdf":
         content_dict = hlt.read_pdf(uploaded_file)
 
+    st.session_state.output_file = uploaded_file.name
+
     st.code(f"""File specs:\n
     - Number of pages:  {content_dict['n_pages']}
     - Number of characters:  {content_dict['n_characters']}
@@ -150,9 +182,6 @@ if uploaded_file is not None:
         """,
             ("Yes", "No"),
         )
-
-
-
 
     # word document content
     st.markdown('# ')
@@ -191,7 +220,6 @@ if uploaded_file is not None:
                                       label_visibility="collapsed",
                                       height=50)
 
-
     # subtitle section
     subtitle_container = st.container()
     subtitle_container.markdown("##### Generate subtitle from text content")
@@ -223,7 +251,6 @@ if uploaded_file is not None:
                                          value=st.session_state.subtitle_response,
                                          label_visibility="collapsed",
                                          height=50)
-
 
     # science section
     science_container = st.container()
@@ -321,7 +348,6 @@ if uploaded_file is not None:
                                         label_visibility="collapsed",
                                         height=400)
 
-
     # figure recommendations section
     figure_container = st.container()
     figure_container.markdown("##### Generate figure recommendations from the general summary")
@@ -357,6 +383,38 @@ if uploaded_file is not None:
                                        value=st.session_state.figure_response,
                                        label_visibility="collapsed",
                                        height=200)
+
+    export_container = st.container()
+    export_container.markdown("##### Export Word document with new content when ready")
+
+    # template parameters
+    parameters = {
+        'title': st.session_state.title_response,
+        'subtitle': st.session_state.subtitle_response,
+        'photo': st.session_state.photo,
+        'photo_link': st.session_state.photo_link,
+        'photo_site_name': st.session_state.photo_site_name,
+        'image_caption': st.session_state.image_caption,
+        'science': st.session_state.science_response,
+        'impact': st.session_state.impact_response,
+        'summary': st.session_state.summary_response,
+        'funding': st.session_state.funding,
+        'citation': st.session_state.citation,
+        'related_links': st.session_state.related_links
+    }
+
+    # template word document
+    template = DocxTemplate("data/highlight_template.docx")
+    template.render(parameters)
+    bio = io.BytesIO()
+    template.save(bio)
+    if template:
+        export_container.download_button(
+            label="Export Word Document",
+            data=bio.getvalue(),
+            file_name="modified_template.docx",
+            mime="docx"
+        )
 
     # power point slide content
     st.markdown('# ')

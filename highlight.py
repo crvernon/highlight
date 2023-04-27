@@ -119,3 +119,5 @@ def generate_content(system_scope,
     content = response["choices"][0]["message"]["content"]
 
     return content
+
+
