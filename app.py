@@ -3,6 +3,7 @@ import os
 
 from docxtpl import DocxTemplate
 import openai
+from pptx import Presentation
 import streamlit as st
 
 import highlight as hlt
@@ -16,21 +17,46 @@ def generate_content(container,
                      max_tokens=50,
                      temperature=0.0,
                      box_height=200,
-                     additional_content=None):
+                     additional_content=None,
+                     max_word_count=100,
+                     min_word_count=75,
+                     model="gpt-4"):
 
-    with st.spinner(f"Your {prompt_name} response is being generated..."):
-        response = prompts.generate_prompt(content=content,
-                                           prompt_name=prompt_name,
-                                           temperature=temperature,
-                                           max_tokens=max_tokens,
-                                           additional_content=additional_content)
-        container.markdown(result_title)
-        container.text_area(label=result_title,
-                            value=response,
-                            label_visibility="collapsed",
-                            height=box_height)
+    response = prompts.generate_prompt(content=content,
+                                       prompt_name=prompt_name,
+                                       temperature=temperature,
+                                       max_tokens=max_tokens,
+                                       additional_content=additional_content)
+    container.markdown(result_title)
 
-        return response
+    word_count = len(response.split())
+
+    if word_count > max_word_count:
+
+        # construct word count reduction prompt
+        reduction_prompt = prompts.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
+
+        messages = [{"role": "system",
+                     "content": prompts.prompt_queue["system"]},
+                    {"role": "user",
+                     "content": reduction_prompt}]
+
+        reduced_response = openai.ChatCompletion.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=messages)
+
+        response = reduced_response["choices"][0]["message"]["content"]
+
+    container.text_area(label=result_title,
+                        value=response,
+                        label_visibility="collapsed",
+                        height=box_height)
+
+    st.write(f"Word count:  {len(response.split())}")
+
+    return response
 
 
 if "reduce_document" not in st.session_state:
@@ -174,11 +200,13 @@ if uploaded_file is not None:
         your document by keeping only relevant information? 
         If so, I will give you a file to download with the content 
         so you only have to do this once.
-        If you choose to go through with this, it may take several 
-        minutes to process.  I'll keep you posted.
+        If you choose to go through with this, it may take a while
+        to process, usually on the order of 15 minutes for a 20K token
+        document.
         Alternatively, you can copy and paste the contents that you
         know are of interest into a text file and upload that
         instead.
+    
         """,
             ("Yes", "No"),
         )
@@ -196,7 +224,7 @@ if uploaded_file is not None:
     title_temperature = title_container.slider("Title Temperature",
                                                0.0,
                                                1.0,
-                                               0.7,
+                                               0.2,
                                                label_visibility="collapsed")
 
     # build container content
@@ -229,20 +257,28 @@ if uploaded_file is not None:
     subtitle_temperature = subtitle_container.slider("Subtitle Temperature",
                                                      0.0,
                                                      1.0,
-                                                     0.7,
+                                                     0.5,
                                                      label_visibility="collapsed")
 
     # build container content
     if subtitle_container.button('Generate Subtitle'):
-        st.session_state.subtitle_response = generate_content(
-            container=subtitle_container,
-            content=content_dict["content"],
-            prompt_name="subtitle",
-            result_title="Subtitle Result:",
-            max_tokens=100,
-            temperature=subtitle_temperature,
-            box_height=50
-        )
+
+        if st.session_state.title_response is None:
+            st.write("Please generate a Title first.  Subtitle generation considers the title response.")
+        else:
+
+            st.session_state.subtitle_response = generate_content(
+                container=subtitle_container,
+                content=content_dict["content"],
+                prompt_name="subtitle",
+                result_title="Subtitle Result:",
+                max_tokens=100,
+                temperature=subtitle_temperature,
+                box_height=50,
+                additional_content=st.session_state.title_response,
+                max_word_count=100,
+                min_word_count=75
+            )
 
     else:
         if st.session_state.subtitle_response is not None:
@@ -271,9 +307,11 @@ if uploaded_file is not None:
             content=content_dict["content"],
             prompt_name="science",
             result_title="Science Summary Result:",
-            max_tokens=500,
+            max_tokens=200,
             temperature=science_temperature,
-            box_height=250
+            box_height=250,
+            max_word_count=100,
+            min_word_count=75
         )
 
     else:
@@ -305,7 +343,9 @@ if uploaded_file is not None:
             result_title="Impact Summary Result:",
             max_tokens=700,
             temperature=impact_temperature,
-            box_height=250
+            box_height=250,
+            max_word_count=100,
+            min_word_count=75
         )
 
     else:
@@ -337,7 +377,9 @@ if uploaded_file is not None:
             result_title="General Summary Result:",
             max_tokens=700,
             temperature=summary_temperature,
-            box_height=400
+            box_height=400,
+            max_word_count=200,
+            min_word_count=100
         )
 
     else:
@@ -388,7 +430,7 @@ if uploaded_file is not None:
     export_container.markdown("##### Export Word document with new content when ready")
 
     # template parameters
-    parameters = {
+    word_parameters = {
         'title': st.session_state.title_response,
         'subtitle': st.session_state.subtitle_response,
         'photo': st.session_state.photo,
@@ -405,7 +447,7 @@ if uploaded_file is not None:
 
     # template word document
     template = DocxTemplate("data/highlight_template.docx")
-    template.render(parameters)
+    template.render(word_parameters)
     bio = io.BytesIO()
     template.save(bio)
     if template:
@@ -516,3 +558,36 @@ if uploaded_file is not None:
                                         value=st.session_state.ppt_impact_response,
                                         label_visibility="collapsed",
                                         height=250)
+
+    ppt_export_container = st.container()
+    ppt_export_container.markdown("##### Export PowerPoint document with new content when ready")
+
+    # template PPTX document
+    ppt_template = Presentation("data/highlight_template.pptx")
+    slide = ppt_template.slides[0]
+    content_shapes = [i for i in slide.shapes if i.has_text_frame]
+    objective_block = content_shapes[0]
+    title_block = content_shapes[1]
+    reference_block = content_shapes[2]
+    caption_block = content_shapes[3]
+    approach_block = content_shapes[4]
+    impact_block = content_shapes[5]
+
+    bio = io.BytesIO()
+    ppt_template.save(bio)
+
+    if ppt_export_container:
+
+        objective_block.text = st.session_state.objective_response
+        title_block.text = st.session_state.title_response
+        reference_block.text = "fill in"
+        caption_block.text = "fill in"
+        approach_block.text = st.session_state.approach_response
+        impact_block.text = st.session_state.impact_response
+
+        export_container.download_button(
+            label="Export PowerPoint Document",
+            data=bio.getvalue(),
+            file_name="modified_template.pptx",
+            mime="pptx"
+        )
