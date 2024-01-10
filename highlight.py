@@ -5,7 +5,7 @@ import tiktoken
 from tqdm import tqdm
 
 
-def get_token_count(text, model="gpt-4"):
+def get_token_count(text, model="gpt-4-1106-preview"):
     """Get the token count of text content based on the model"""
 
     encoding = tiktoken.encoding_for_model(model)
@@ -67,7 +67,8 @@ def read_text(file_object: object,) -> dict:
 
 
 def content_reduction(document_list,
-                      system_scope):
+                      system_scope,
+                      model):
     """Remove irrelevant content from input text."""
 
     prompt = """Remove irrelevant content from the following text.\n\n{text}\n\n}"""
@@ -83,7 +84,7 @@ def content_reduction(document_list,
                      "content": prompt.format(text=page_content)}]
 
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model=model,
             max_tokens=page_tokens,
             temperature=0.0,
             messages=messages)
@@ -97,7 +98,8 @@ def generate_content(system_scope,
                      prompt,
                      max_tokens=50,
                      temperature=0.0,
-                     max_allowable_tokens=8192):
+                     max_allowable_tokens=8192,
+                     model="gpt-4-1106-preview"):
 
     n_prompt_tokens = get_token_count(prompt) + max_tokens
 
@@ -111,7 +113,7 @@ def generate_content(system_scope,
                  "content": prompt}]
 
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model=model,
         max_tokens=max_tokens,
         temperature=temperature,
         messages=messages)

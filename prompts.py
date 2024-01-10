@@ -10,7 +10,7 @@ example_text_one = """Multisector Dynamics: Advancing the Science of Complex Ada
 example_text_two = """The Role of Regional Connections in Planning for Future Power System Operations Under Climate Extremes.  Identifying the sensitivity of future power systems to climate extremes must consider the concurrent effects of changing climate and evolving power systems. We investigated the sensitivity of a Western U.S. power system to isolated and combined heat and drought when it has low (5%) and moderate (31%) variable renewable energy shares, representing historic and future systems. We used an electricity operational model combined with a model of historically extreme drought (for hydropower and freshwater-reliant thermoelectric generators) over the Western U.S. and a synthetic, regionally extreme heat event in Southern California (for thermoelectric generators and electricity load). We found that the drought has the highest impact on summertime production cost (+10% to +12%), while temperature-based deratings have minimal effect (at most +1%). The Southern California heat wave scenario impacting load increases summertime regional net imports to Southern California by 10–14%, while the drought decreases them by 6–12%. Combined heat and drought conditions have a moderate effect on imports to Southern California (−2%) in the historic system and a stronger effect (+8%) in the future system. Southern California dependence on other regions decreases in the summertime with the moderate increase in variable renewable energy (−34% imports), but hourly peak regional imports are maintained under those infrastructure changes. By combining synthetic and historically driven conditions to test two infrastructures, we consolidate the importance of considering compounded heat wave and drought in planning studies and suggest that region-to-region energy transfers during peak periods are key to optimal operations under climate extremes."""
 system_scope = """You are a technical science editor.  You are constructing high impact highlight content from recent publications."""
 
-max_allowable_tokens = 8192
+max_allowable_tokens = 150000
 
 prompt_queue = {
     "system": """You are a technical science editor.  You are constructing high impact highlight content from recent publications.""",
@@ -126,7 +126,7 @@ prompt_queue = {
     "figure": """
     Generate a list of 5 search strings for use in the website that hosts free stock photos  \
     (e.g., https://www.pexels.com/) that would be representative of an aspect of the following research statement \
-    delimited by triple backticks.
+    delimited by triple backticks.  
 
     ```{0}```
     """,
@@ -170,6 +170,7 @@ prompt_queue = {
     - Use a different action verb to start sentences than what is used to begin the objective statement.
     - Use active verbs for the start of each point.  
     - Use present tense.
+    - Format the results as a hyphen-separated list.
 
     TEXT: {0}
     RESPONSE:
@@ -185,6 +186,7 @@ prompt_queue = {
     - Include results that may be considered profound or surprising.
     - Each point should be 1 concise sentence.
     - Use present tense.
+    - Format the results as a hyphen-separated list.
 
     TEXT: {0}
     RESPONSE:
@@ -194,7 +196,30 @@ prompt_queue = {
     The following is the text delimited by triple backquotes:
      
      ```{2}```
-    """
+    """,
+
+    "figure_caption": """Summarize the key findings of the paper as a figure caption.
+    - Limit the response to 25 words.
+    
+    TEXT: {0}
+    RESPONSE:
+    """,
+
+    "figure_choice": """What figure best represents the high impact content that can be easily understood by a non-technical, non-scientifc audience.
+    Limit the response to:
+    1. The figure name as it is written in the text,
+    2. An explanation of why it was chosen,
+    3. What the figure is about as a figure caption in less than 50 words. Use the figure name in the caption.  Start this point with the phrase "CAPTION:  "
+        
+    TEXT: {0}
+    RESPONSE:
+    """,
+
+    "citation": """Generate the citation for this publication.
+    
+    And use the formatting provided in the following:
+    Hadjimichael, A., J. Yoon, P. Reed, N. Voisin, W. Xu. 2023. “Exploring the Consistency of Water Scarcity Inferences between Large-Scale Hydrologic and Node-Based Water System Model Representations of the Upper Colorado River Basin,” J. Water Resour. Plann. Manage., 149(2): 04022081. DOI: 10.1061/JWRMD5.WRENG-5522
+    """,
 }
 
 
@@ -202,7 +227,8 @@ def generate_prompt(content: str,
                     prompt_name: str = "title",
                     max_tokens: int = 50,
                     temperature: float = 0.0,
-                    additional_content: str = None) -> str:
+                    additional_content: str = None,
+                    model: str = "gpt-4") -> str:
 
     if prompt_name in ("objective",):
         prompt = prompt_queue[prompt_name].format(example_text_one, example_text_two, content)
@@ -218,13 +244,14 @@ def generate_prompt(content: str,
         prompt = prompt_queue[prompt_name].format(content, additional_content)
 
 
-    elif prompt_name in ("figure", "caption", "impact", "summary", "ppt_impact", "title", "science"):
+    elif prompt_name in ("figure", "caption", "impact", "summary", "ppt_impact", "title", "science", "figure_caption", "figure_choice", "citation"):
         prompt = prompt_queue[prompt_name].format(content)
 
     return hlt.generate_content(system_scope=system_scope,
                                 prompt=prompt,
                                 max_tokens=max_tokens,
                                 temperature=temperature,
-                                max_allowable_tokens=max_allowable_tokens)
+                                max_allowable_tokens=max_allowable_tokens,
+                                model=model)
 
 
