@@ -1,5 +1,138 @@
 
+from langchain.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
+
 import highlight as hlt
+
+
+
+def build_prompt_template():
+    """ """
+    system_message = """
+    You are a technical science editor.
+    You are constructing high-impact highlight content from scientific journal articles.
+    You should always respond with the most relevant content.
+    You should only respond with a response to the request.
+    You should never ask any questions.
+    Do not answer questions that are not about the specific journal article you have been provided.
+    Given a request, you should respond with the most relevant summary of the content below:\n
+    {context}
+    """
+
+    system_message_prompt = SystemMessagePromptTemplate.from_template(system_message)
+    human_message_prompt = HumanMessagePromptTemplate.from_template("{question}")
+    return ChatPromptTemplate.from_messages(
+        [
+            system_message_prompt,
+            human_message_prompt,
+        ]
+    )
+
+prompt_dict = {
+
+    "title": """
+    ### INSTRUCTION ###
+    Create a captivating and concise title for the provided text, adhering to these guidelines:
+
+    - Avoid using colons in the title.
+    - The title should be engaging and slightly descriptive, sparking curiosity in potential readers.
+    - It must be clear and easily understood by a broad audience.
+    - Refrain from beginning with phrases like "unraveling" or "unlocking the secrets."
+    - Limit the title to a single sentence, not exceeding 10 words.
+    - Return the title only.
+    - Exclude words such as "revolutionizing" or "unraveling."
+
+    Remember, do not use colons in the title and do not exceed 10 words.
+
+    ### EXAMPLE ###
+    Unraveling the Complex Web of Urban Land Teleconnections
+
+    """,
+
+    "subtitle": """
+    ### INSTRUCTION ###
+    Create a subtitle for the provided text, adhering to these guidelines:
+
+    - Keep the subtitle within a limit of 155 characters, spaces included.
+    - Absolutely no colons are to be included in the subtitle.
+    - It should complement and connect to the given title (enclosed in single backticks `{title}`), without directly repeating any part of it.
+    - The subtitle needs to add intriguing details that encourage the audience to learn more about the research topic.
+    - Only the subtitle should be provided as the output.
+
+    Remember, do not use colons and keep the number of characters including spaces limited to 155.
+
+    ### EXAMPLE ###
+    Delving Deeper into the Complex Interactions Between Urban and Rural Areas and Their Consequential Effects on Land Development
+
+    """,
+
+    "science": """
+    Explain the scientific findings in a simple and relatable manner for the provided text, adhering to these guidelines:
+
+    - You must not generate a response that is greater than 100 words.
+    - Highlight the main challenge this scientific field faces, which the research aims to address.
+    - Clearly state the primary discovery.
+    - Focus on the scientific concepts rather than the research methodology.
+    - Ensure the language is clear and accessible to high school seniors or college freshmen.
+    - Use straightforward, brief sentences with clear language.
+    - Avoid or explain any technical jargon in layman's terms.
+    - Provide enough background for a basic understanding of the research.
+    - Begin with familiar concepts and gradually introduce more complex ideas.
+    - Use the present tense for your description.
+    - Write as if you, the researcher, are explaining your own work.
+    - Keep the description to one paragraph, with a word count between 75 to 100 words.
+    - Return only the explanatory paragraph.
+
+    Remember, you must at all cost limit your response to no more than 100 words.
+
+    """,
+
+    "impact": """
+    Convey the significance of the research findings for a non-specialist audience for the provided text, adhering to these guidelines:
+
+    - You must not generate a response that is greater than 100 words.
+    - Clarify the relevance of the findings, specifically addressing the problem the research seeks to resolve.
+    - Indicate whether this discovery is a first in its field.
+    - Highlight what sets this research apart in terms of innovation.
+    - Explain how this research paves the way for future scientific endeavors in the same field.
+    - Mention any other scientific disciplines that could be influenced by these findings.
+    - Keep the language simple enough for understanding by a high school senior or college freshman.
+    - Use concise sentences with straightforward wording.
+    - Minimize the use of technical jargon, and if necessary, provide clear definitions.
+    - Employ the present tense in your description.
+    - Write from the perspective of the researchers, using the first person to discuss the work.
+    - Ensure the description is at least 75 words but does not exceed 100 words.
+
+    Remember, you must at all cost limit your response to no more than 100 words.
+
+    """,
+
+    "summary": """
+    Create a succinct overview of the research described for the provided text, adhering to these guidelines:
+
+    - You must not generate a response that is greater than 200 words.
+    - Highlight the principal findings and their significance.
+    - While the summary should be understandable to those outside the field, it can include some technical details where necessary.
+    - Avoid naming specific institutions, except for mentioning user facilities like NERSC or if they are part of the United States Department of Energy Office of Science.
+    - Provide a detailed account of the research in one or two paragraphs.
+    - Use the present tense for your summary.
+    - Narrate from the perspective of the researchers involved, using first person to discuss the work.
+
+    Remember, you must at all cost limit your response to no more than 200 words.
+
+    """,
+
+}
+
+
+
+
+
+
+
 
 
 # open example reduced content text
@@ -12,7 +145,7 @@ system_scope = """You are a technical science editor.  You are constructing high
 
 max_allowable_tokens = 150000
 
-prompt_queue = {
+_prompt_queue = {
     "system": """You are a technical science editor.  You are constructing high impact highlight content from recent publications.""",
 
     "title": """
@@ -223,35 +356,34 @@ prompt_queue = {
 }
 
 
-def generate_prompt(content: str,
-                    prompt_name: str = "title",
-                    max_tokens: int = 50,
-                    temperature: float = 0.0,
-                    additional_content: str = None,
-                    model: str = "gpt-4") -> str:
+# def generate_prompt(content: str,
+#                     prompt_name: str = "title",
+#                     max_tokens: int = 50,
+#                     temperature: float = 0.0,
+#                     additional_content: str = None,
+#                     model: str = "gpt-4") -> str:
 
-    if prompt_name in ("objective",):
-        prompt = prompt_queue[prompt_name].format(example_text_one, example_text_two, content)
+#     if prompt_name in ("objective",):
+#         prompt = prompt_queue[prompt_name].format(example_text_one, example_text_two, content)
 
-    elif prompt_name in ("approach",):
-        if additional_content is None:
-            additional_content = content
-        prompt = prompt_queue[prompt_name].format(example_text_two, content, additional_content)
+#     elif prompt_name in ("approach",):
+#         if additional_content is None:
+#             additional_content = content
+#         prompt = prompt_queue[prompt_name].format(example_text_two, content, additional_content)
 
-    elif prompt_name in ("subtitle",):
-        if additional_content is None:
-            additional_content = content
-        prompt = prompt_queue[prompt_name].format(content, additional_content)
+#     elif prompt_name in ("subtitle",):
+#         if additional_content is None:
+#             additional_content = content
+#         prompt = prompt_queue[prompt_name].format(content, additional_content)
 
+#     elif prompt_name in ("figure", "caption", "impact", "summary", "ppt_impact", "title", "science", "figure_caption", "figure_choice", "citation"):
+#         prompt = prompt_queue[prompt_name].format(content)
 
-    elif prompt_name in ("figure", "caption", "impact", "summary", "ppt_impact", "title", "science", "figure_caption", "figure_choice", "citation"):
-        prompt = prompt_queue[prompt_name].format(content)
-
-    return hlt.generate_content(system_scope=system_scope,
-                                prompt=prompt,
-                                max_tokens=max_tokens,
-                                temperature=temperature,
-                                max_allowable_tokens=max_allowable_tokens,
-                                model=model)
+#     return hlt.generate_content(system_scope=system_scope,
+#                                 prompt=prompt,
+#                                 max_tokens=max_tokens,
+#                                 temperature=temperature,
+#                                 max_allowable_tokens=max_allowable_tokens,
+#                                 model=model)
 
 

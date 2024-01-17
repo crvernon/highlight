@@ -1,5 +1,6 @@
 import io
 import os
+import shutil
 
 import argparse
 import json
@@ -7,14 +8,15 @@ import os
 import time
 
 import requests
-import tqdm
-from pexels_api import API
-from PIL import Image
+# import tqdm
+# from pexels_api import API
+# from PIL import Image
 from docxtpl import DocxTemplate
-import openai
+# import openai
 from pptx import Presentation
 import streamlit as st
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.memory import ConversationBufferMemory
 
 import highlight as hlt
 import prompts
@@ -32,33 +34,47 @@ def generate_content(container,
                      min_word_count=75,
                      model="gpt-4-1106-preview"):
 
-    response = prompts.generate_prompt(content=content,
-                                       prompt_name=prompt_name,
-                                       temperature=temperature,
-                                       max_tokens=max_tokens,
-                                       additional_content=additional_content,
-                                       model=model)
+    # construct conversational chain
+    chain = hlt.build_conversational_chain(
+        chat_template=st.session_state.chat_template,
+        vector_store=st.session_state.vector_store,
+        memory=st.session_state.memory,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+
+    # build prompt
+    if prompt_name == "subtitle":
+        target_prompt = prompts.prompt_dict[prompt_name].format(title=additional_content)
+    else:
+        target_prompt = prompts.prompt_dict[prompt_name]
+
+    # generate response
+    response = chain.invoke(
+        {"question": target_prompt}
+    )["answer"].replace('"', "")
+
     container.markdown(result_title)
 
     word_count = len(response.split())
 
-    if word_count > max_word_count:
+    # if word_count > max_word_count:
 
-        # construct word count reduction prompt
-        reduction_prompt = prompts.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
+    #     # construct word count reduction prompt
+    #     reduction_prompt = prompts.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
 
-        messages = [{"role": "system",
-                     "content": prompts.prompt_queue["system"]},
-                    {"role": "user",
-                     "content": reduction_prompt}]
+    #     messages = [{"role": "system",
+    #                  "content": prompts.prompt_queue["system"]},
+    #                 {"role": "user",
+    #                  "content": reduction_prompt}]
 
-        reduced_response = openai.ChatCompletion.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=messages)
+    #     reduced_response = openai.ChatCompletion.create(
+    #         model=model,
+    #         max_tokens=max_tokens,
+    #         temperature=temperature,
+    #         messages=messages)
 
-        response = reduced_response["choices"][0]["message"]["content"]
+    #     response = reduced_response["choices"][0]["message"]["content"]
 
     container.text_area(label=result_title,
                         value=response,
@@ -69,6 +85,20 @@ def generate_content(container,
 
     return response
 
+
+if "chat_template" not in st.session_state:
+    st.session_state.chat_template = prompts.build_prompt_template()
+
+if "vector_store" not in st.session_state:
+    if os.path.exists("./tempdb"):
+        shutil.rmtree("./tempdb")
+    st.session_state.vector_store = None
+
+if "memory" not in st.session_state:
+    st.session_state.memory = ConversationBufferMemory(
+        memory_key="chat_history", 
+        return_messages=True
+    )
 
 if "reduce_document" not in st.session_state:
     st.session_state.reduce_document = False
@@ -169,19 +199,24 @@ st.markdown("Ensure that your account supports the model you have choose.")
 
 st.session_state.model = st.selectbox(
     label="Select your model:",
-    options=("gpt-4-1106-preview", "gpt-4", "gpt-3.5-turbo-16k", "gpt-3.5-turbo")
+    options=(
+        "gpt-4-1106-preview", 
+        "gpt-4", 
+        "gpt-3.5-turbo-1106", 
+        "gpt-3.5-turbo"
+    )
 )
 
-if st.session_state.model == "gpt-4-32k":
-    st.session_state.max_allowable_tokens = 32768
+# allowable token limits
+if st.session_state.model == "gpt-4-1106-preview":
+    st.session_state.max_allowable_tokens = 128000
 elif st.session_state.model == "gpt-4":
     st.session_state.max_allowable_tokens = 8192
-elif st.session_state.model == "gpt-3.5-turbo-16k":
+elif st.session_state.model == "gpt-3.5-turbo-1106":
     st.session_state.max_allowable_tokens = 16384
 elif st.session_state.model == "gpt-3.5-turbo":
     st.session_state.max_allowable_tokens = 4096
-elif st.session_state.model == "gpt-4-1106-preview":
-    st.session_state.max_allowable_tokens = 150000
+
 
 example_api_key_length = 51
 api_key = st.text_input(
@@ -190,7 +225,7 @@ api_key = st.text_input(
     type="password")
 
 # set api key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.markdown("#### Load file to process:")
 uploaded_file = st.file_uploader(
@@ -205,13 +240,15 @@ if uploaded_file is not None:
         content_dict = hlt.read_text(uploaded_file)
 
     elif uploaded_file.type == "application/pdf":
-        content_dict = hlt.read_pdf(uploaded_file)
+        content_dict = hlt.load_pdf(uploaded_file)
+
+    # generate the vector store and load it
+    st.session_state.vector_store = hlt.build_vector_store(content_dict["content"])
 
     st.session_state.output_file = uploaded_file.name
 
     st.code(f"""File specs:\n
     - Number of pages:  {content_dict['n_pages']}
-    - Number of characters:  {content_dict['n_characters']}
     - Number of words: {content_dict['n_words']}
     - Number of tokens: {content_dict['n_tokens']}
     """)
@@ -227,24 +264,10 @@ if uploaded_file is not None:
     Your documents token count: {content_dict['n_tokens']}
     
     Token deficit: {content_dict['n_tokens'] - st.session_state.max_allowable_tokens}
+
+    Choosing a model with a larger context window may fix your issue.
     """
         st.error(msg, icon="🚨")
-
-        st.session_state.reduce_document = st.radio(
-            """Would you like me to attempt to reduce the size of 
-        your document by keeping only relevant information? 
-        If so, I will give you a file to download with the content 
-        so you only have to do this once.
-        If you choose to go through with this, it may take a while
-        to process, usually on the order of 15 minutes for a 20K token
-        document.
-        Alternatively, you can copy and paste the contents that you
-        know are of interest into a text file and upload that
-        instead.
-    
-        """,
-            ("Yes", "No"),
-        )
 
     # word document content
     st.markdown('# ')
@@ -270,7 +293,7 @@ if uploaded_file is not None:
     title_temperature = title_container.slider("Title Temperature",
                                                0.0,
                                                1.0,
-                                               0.2,
+                                               0.7,
                                                label_visibility="collapsed")
 
     # build container content
