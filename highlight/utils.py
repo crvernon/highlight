@@ -1,10 +1,10 @@
-
-from openai import OpenAI
-
-client = OpenAI()
 import PyPDF2
 import tiktoken
 from tqdm import tqdm
+from openai import OpenAI
+
+
+client = OpenAI()
 
 
 def get_token_count(text, model="gpt-4o"):
@@ -121,5 +121,3 @@ def generate_content(system_scope,
     content = response.choices[0].message.content
 
     return content
-
-

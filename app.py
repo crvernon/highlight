@@ -1,5 +1,6 @@
 import io
 import os
+import importlib
 
 from docxtpl import DocxTemplate
 from pptx import Presentation
@@ -8,7 +9,6 @@ from openai import OpenAI
 import streamlit as st
 
 import highlight as hlt
-import prompts
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -26,7 +26,7 @@ def generate_content(container,
                      min_word_count=75,
                      model="gpt-4o"):
 
-    response = prompts.generate_prompt(
+    response = hlt.generate_prompt(
         content=content,
         prompt_name=prompt_name,
         temperature=temperature,
@@ -42,11 +42,11 @@ def generate_content(container,
     if word_count > max_word_count:
 
         # construct word count reduction prompt
-        reduction_prompt = prompts.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
+        reduction_prompt = hlt.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
 
         messages = [
             {"role": "system",
-                "content": prompts.prompt_queue["system"]},
+                "content": hlt.prompt_queue["system"]},
             {"role": "user",
                 "content": reduction_prompt}
         ]
@@ -666,7 +666,9 @@ if uploaded_file is not None:
     }
 
     # template word document
-    template = DocxTemplate("data/highlight_template.docx")
+    highlight = importlib.import_module('highlight.data')
+    word_template_file = highlight.highlight_template_file
+    template = DocxTemplate(word_template_file)
     template.render(word_parameters)
     bio = io.BytesIO()
     template.save(bio)
