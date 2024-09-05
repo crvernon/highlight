@@ -1,11 +1,13 @@
 
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 import PyPDF2
 import tiktoken
 from tqdm import tqdm
 
 
-def get_token_count(text, model="gpt-4-1106-preview"):
+def get_token_count(text, model="gpt-4o"):
     """Get the token count of text content based on the model"""
 
     encoding = tiktoken.encoding_for_model(model)
@@ -83,13 +85,12 @@ def content_reduction(document_list,
                     {"role": "user",
                      "content": prompt.format(text=page_content)}]
 
-        response = openai.ChatCompletion.create(
-            model=model,
-            max_tokens=page_tokens,
-            temperature=0.0,
-            messages=messages)
+        response = client.chat.completions.create(model=model,
+        max_tokens=page_tokens,
+        temperature=0.0,
+        messages=messages)
 
-        content += response["choices"][0]["message"]["content"]
+        content += response.choices[0].message.content
 
     return content
 
@@ -99,7 +100,7 @@ def generate_content(system_scope,
                      max_tokens=50,
                      temperature=0.0,
                      max_allowable_tokens=8192,
-                     model="gpt-4-1106-preview"):
+                     model="gpt-4o"):
 
     n_prompt_tokens = get_token_count(prompt) + max_tokens
 
@@ -112,13 +113,12 @@ def generate_content(system_scope,
                 {"role": "user",
                  "content": prompt}]
 
-    response = openai.ChatCompletion.create(
-        model=model,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        messages=messages)
+    response = client.chat.completions.create(model=model,
+    max_tokens=max_tokens,
+    temperature=temperature,
+    messages=messages)
 
-    content = response["choices"][0]["message"]["content"]
+    content = response.choices[0].message.content
 
     return content
 

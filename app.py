@@ -11,7 +11,9 @@ import tqdm
 from pexels_api import API
 from PIL import Image
 from docxtpl import DocxTemplate
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from pptx import Presentation
 import streamlit as st
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -30,7 +32,7 @@ def generate_content(container,
                      additional_content=None,
                      max_word_count=100,
                      min_word_count=75,
-                     model="gpt-4-1106-preview"):
+                     model="gpt-4o"):
 
     response = prompts.generate_prompt(content=content,
                                        prompt_name=prompt_name,
@@ -52,13 +54,12 @@ def generate_content(container,
                     {"role": "user",
                      "content": reduction_prompt}]
 
-        reduced_response = openai.ChatCompletion.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=messages)
+        reduced_response = client.chat.completions.create(model=model,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        messages=messages)
 
-        response = reduced_response["choices"][0]["message"]["content"]
+        response = reduced_response.choices[0].message.content
 
     container.text_area(label=result_title,
                         value=response,
@@ -169,7 +170,7 @@ st.markdown("Ensure that your account supports the model you have choose.")
 
 st.session_state.model = st.selectbox(
     label="Select your model:",
-    options=("gpt-4-1106-preview", "gpt-4", "gpt-3.5-turbo-16k", "gpt-3.5-turbo")
+    options=("gpt-4o", "gpt-4", "gpt-3.5-turbo-16k", "gpt-3.5-turbo")
 )
 
 if st.session_state.model == "gpt-4-32k":
@@ -180,7 +181,7 @@ elif st.session_state.model == "gpt-3.5-turbo-16k":
     st.session_state.max_allowable_tokens = 16384
 elif st.session_state.model == "gpt-3.5-turbo":
     st.session_state.max_allowable_tokens = 4096
-elif st.session_state.model == "gpt-4-1106-preview":
+elif st.session_state.model == "gpt-4o":
     st.session_state.max_allowable_tokens = 150000
 
 example_api_key_length = 51
@@ -190,7 +191,6 @@ api_key = st.text_input(
     type="password")
 
 # set api key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 st.markdown("#### Load file to process:")
 uploaded_file = st.file_uploader(
