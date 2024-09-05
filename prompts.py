@@ -181,7 +181,7 @@ prompt_queue = {
     RESPONSE:
     """,
 
-    "ppt_impact": """Clearly and concisely state in 3 points the key results and outcomes from this research. 
+    "ppt_impact": """Clearly and concisely state in 3 bullet points the key results and outcomes from this research. 
     - State what the results indicate.
     - Include results that may be considered profound or surprising.
     - Each point should be 1 concise sentence.
@@ -215,20 +215,33 @@ prompt_queue = {
     RESPONSE:
     """,
 
-    "citation": """Generate the citation for this publication.
+    "citation": """Generate the citation for this publication in Chicago style. 
+    Do not use the example directly.  
     
-    And use the formatting provided in the following:
+    # Example:
     Hadjimichael, A., J. Yoon, P. Reed, N. Voisin, W. Xu. 2023. “Exploring the Consistency of Water Scarcity Inferences between Large-Scale Hydrologic and Node-Based Water System Model Representations of the Upper Colorado River Basin,” J. Water Resour. Plann. Manage., 149(2): 04022081. DOI: 10.1061/JWRMD5.WRENG-5522
+
+    TEXT: {0}
+    RESPONSE:
+    """,
+
+    "funding": """Extract the funding statement from the content provided. 
+    Only provide the funding statment.  Do not provide header content like **Funding Statement:**.
+
+    TEXT: {0}
+    RESPONSE:
     """,
 }
 
 
-def generate_prompt(content: str,
-                    prompt_name: str = "title",
-                    max_tokens: int = 50,
-                    temperature: float = 0.0,
-                    additional_content: str = None,
-                    model: str = "gpt-4") -> str:
+def generate_prompt(
+    content: str,
+    prompt_name: str = "title",
+    max_tokens: int = 50,
+    temperature: float = 0.0,
+    additional_content: str = None,
+    model: str = "gpt-4"
+) -> str:
 
     if prompt_name in ("objective",):
         prompt = prompt_queue[prompt_name].format(example_text_one, example_text_two, content)
@@ -244,14 +257,28 @@ def generate_prompt(content: str,
         prompt = prompt_queue[prompt_name].format(content, additional_content)
 
 
-    elif prompt_name in ("figure", "caption", "impact", "summary", "ppt_impact", "title", "science", "figure_caption", "figure_choice", "citation"):
+    elif prompt_name in (
+        "figure", 
+        "caption", 
+        "impact", 
+        "summary", 
+        "ppt_impact", 
+        "title", 
+        "science", 
+        "figure_caption", 
+        "figure_choice", 
+        "citation",
+        "funding"
+    ):
         prompt = prompt_queue[prompt_name].format(content)
 
-    return hlt.generate_content(system_scope=system_scope,
-                                prompt=prompt,
-                                max_tokens=max_tokens,
-                                temperature=temperature,
-                                max_allowable_tokens=max_allowable_tokens,
-                                model=model)
+    return hlt.generate_content(
+        system_scope=system_scope,
+        prompt=prompt,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        max_allowable_tokens=max_allowable_tokens,
+        model=model
+    )
 
 

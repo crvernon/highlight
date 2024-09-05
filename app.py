@@ -34,12 +34,15 @@ def generate_content(container,
                      min_word_count=75,
                      model="gpt-4o"):
 
-    response = prompts.generate_prompt(content=content,
-                                       prompt_name=prompt_name,
-                                       temperature=temperature,
-                                       max_tokens=max_tokens,
-                                       additional_content=additional_content,
-                                       model=model)
+    response = prompts.generate_prompt(
+        content=content,
+        prompt_name=prompt_name,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        additional_content=additional_content,
+        model=model
+    )
+
     container.markdown(result_title)
 
     word_count = len(response.split())
@@ -54,10 +57,12 @@ def generate_content(container,
                     {"role": "user",
                      "content": reduction_prompt}]
 
-        reduced_response = client.chat.completions.create(model=model,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        messages=messages)
+        reduced_response = client.chat.completions.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=messages
+        )
 
         response = reduced_response.choices[0].message.content
 
@@ -165,9 +170,6 @@ st.markdown(
     "This app uses a Large Language Model (LLM) of your choosing to generate formatted research highlight content from an input file."
 )
 
-st.markdown("#### Input your OpenAI API Key")
-st.markdown("Ensure that your account supports the model you have choose.")
-
 st.session_state.model = st.selectbox(
     label="Select your model:",
     options=("gpt-4o", "gpt-4", "gpt-3.5-turbo-16k", "gpt-3.5-turbo")
@@ -184,15 +186,9 @@ elif st.session_state.model == "gpt-3.5-turbo":
 elif st.session_state.model == "gpt-4o":
     st.session_state.max_allowable_tokens = 150000
 
-example_api_key_length = 51
-api_key = st.text_input(
-    label="Enter your OpenAI API Key",
-    placeholder="*"*example_api_key_length,
-    type="password")
-
 # set api key
 
-st.markdown("#### Load file to process:")
+st.markdown("### Upload file to process:")
 uploaded_file = st.file_uploader(
     label="### Select PDF or text file to upload",
     type=["pdf", "txt"],
@@ -247,7 +243,6 @@ if uploaded_file is not None:
         )
 
     # word document content
-    st.markdown('# ')
     st.markdown("### Content to fill in Word document template:")
 
     # title section
@@ -474,11 +469,13 @@ if uploaded_file is not None:
     summary_container.markdown("Set desired temperature:")
 
     # slider
-    summary_temperature = summary_container.slider("General Summary Temperature",
-                                                   0.0,
-                                                   1.0,
-                                                   0.3,
-                                                   label_visibility="collapsed")
+    summary_temperature = summary_container.slider(
+        "General Summary Temperature",
+        0.0,
+        1.0,
+        0.3,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if summary_container.button('Generate General Summary'):
@@ -532,68 +529,6 @@ if uploaded_file is not None:
                 model=st.session_state.model
             )
 
-            # st.session_state.search_phrase = figure_container.selectbox(
-            #     label="Choose which search phrase you would like to use",
-            #     options=[i for i in st.session_state.figure_response.split(";")]
-            # )
-            #
-            # if st.session_state.search_phrase is not None:
-            #
-            #     download_dir = "/Users/d3y010/Desktop"
-            #
-            #     PAGE_LIMIT = 2
-            #     RESULTS_PER_PAGE = 1
-            #
-            #     api = API(os.getenv("PEXELS_API_KEY"))
-            #
-            #     photos_dict = {}
-            #     page = 1
-            #     counter = 0
-            #
-            #     # Step 1: Getting urls and meta information
-            #     while page < PAGE_LIMIT:
-            #
-            #         api.search(st.session_state.search_phrase, page=page, results_per_page=RESULTS_PER_PAGE)
-            #
-            #         photos = api.get_entries()
-            #
-            #         for photo in tqdm.tqdm(photos):
-            #             photos_dict[photo.id] = vars(photo)['_Photo__photo']
-            #             counter += 1
-            #
-            #             if not api.has_next_page:
-            #                 break
-            #
-            #             page += 1
-            #
-            #     RESOLUTION = 'original'
-            #
-            #     get_number = 3
-            #     downloaded = 0
-            #
-            #     if photos_dict:
-            #
-            #         # Saving dict
-            #         with open(os.path.join(download_dir, f'{st.session_state.search_phrase}.json'), 'w') as fout:
-            #             json.dump(photos_dict, fout)
-            #
-            #         for val in tqdm.tqdm(photos_dict.values()):
-            #
-            #             url = val['src'][RESOLUTION]
-            #             fname = os.path.basename(val['src']['original'])
-            #             image_path = os.path.join(download_dir, fname)
-            #
-            #             if not os.path.isfile(image_path):
-            #                 response = requests.get(url, stream=True)
-            #                 with open(image_path, 'wb') as outfile:
-            #                     outfile.write(response.content)
-            #
-            #                 downloaded += 1
-            #
-            #     image = Image.open(image_path)
-            #
-            #     figure_container.image(image)
-
     else:
         if st.session_state.figure_response is not None:
 
@@ -605,7 +540,7 @@ if uploaded_file is not None:
 
 
     figure_summary_container = st.container()
-    figure_summary_container.markdown("##### Generate a figure caption that summarize the work generally to use with the artistic photo above.")
+    figure_summary_container.markdown("##### Generate a figure caption that summarizes the work generally to use with the artistic photo above")
 
     # slider
     figure_summary_container.markdown("Set desired temperature:")
@@ -635,11 +570,62 @@ if uploaded_file is not None:
     else:
         if st.session_state.figure_caption is not None:
             figure_container.markdown("Figure Caption Result:")
-            figure_container.text_area(label="Figure Caption Result:",
-                                       value=st.session_state.figure_response,
-                                       label_visibility="collapsed",
-                                       height=200)
+            figure_container.text_area(
+                label="Figure Caption Result:",
+                value=st.session_state.figure_caption,
+                label_visibility="collapsed",
+                height=200
+            )
 
+    # citation recommendations section
+    citation_container = st.container()
+    citation_container.markdown("##### Citation for the paper in Chicago style")
+    
+    if citation_container.button('Generate Citation'):
+        st.session_state.citation = generate_content(
+            container=citation_container,
+            content=content_dict["content"],
+            prompt_name="citation",
+            result_title="",
+            max_tokens=300,
+            temperature=0.0,
+            box_height=200,
+            model=st.session_state.model
+        ).replace('"', "")
+
+    else:
+        if st.session_state.citation is not None:
+            citation_container.text_area(
+                label="Citation",
+                value=st.session_state.citation,
+                label_visibility="collapsed",
+                height=200
+            )
+
+    # funding recommendations section
+    funding_container = st.container()
+    funding_container.markdown("##### Funding statement from the paper")
+    
+    if funding_container.button('Generate funding statement'):
+        st.session_state.funding = generate_content(
+            container=funding_container,
+            content=content_dict["content"],
+            prompt_name="funding",
+            result_title="",
+            max_tokens=300,
+            temperature=0.0,
+            box_height=200,
+            model=st.session_state.model
+        ).replace('"', "")
+
+    else:
+        if st.session_state.funding is not None:
+            funding_container.text_area(
+                label="Funding statement",
+                value=st.session_state.funding,
+                label_visibility="collapsed",
+                height=200
+            )
 
     export_container = st.container()
     export_container.markdown("##### Export Word document with new content when ready")
@@ -674,7 +660,6 @@ if uploaded_file is not None:
         )
 
     # power point slide content
-    st.markdown('# ')
     st.markdown("### Content to fill in PowerPoint template template:")
 
     # objective section
@@ -774,16 +759,19 @@ if uploaded_file is not None:
     - Include results that may be considered profound or surprising.
     - Each point should be 1 concise sentence.
     - Use present tense.
-    """)
+    """
+    )
 
     ppt_impact_container.markdown("Set desired temperature:")
 
     # slider
-    ppt_impact_temperature = ppt_impact_container.slider("Impact Points Temperature",
-                                                         0.0,
-                                                         1.0,
-                                                         0.1,
-                                                         label_visibility="collapsed")
+    ppt_impact_temperature = ppt_impact_container.slider(
+        "Impact Points Temperature",
+        0.0,
+        1.0,
+        0.1,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if ppt_impact_container.button('Generate Impact Points'):
@@ -848,67 +836,3 @@ if uploaded_file is not None:
                                            value=st.session_state.figure_recommendation,
                                            label_visibility="collapsed",
                                            height=250)
-
-    # # power point citation section
-    # ppt_citation_section = st.container()
-    # ppt_citation_section.markdown("##### Generate the paper citation")
-    #
-    # ppt_citation_section.markdown("""
-    # **GOAL**:  Generate a citation in Nature format for the publication.
-    # """)
-    #
-    # # build container content
-    # if ppt_citation_section.button('Generate Citation'):
-    #     st.session_state.citation = generate_content(
-    #         container=ppt_citation_section,
-    #         content=content_dict["content"],
-    #         prompt_name="citation",
-    #         result_title="Citation Result:",
-    #         max_tokens=300,
-    #         temperature=0.0,
-    #         box_height=250,
-    #         model=st.session_state.model
-    #     )
-    #
-    # else:
-    #     if st.session_state.citation is not None:
-    #         ppt_citation_section.markdown("Citation Result:")
-    #         ppt_citation_section.text_area(label="Citation Result:",
-    #                                        value=st.session_state.citation,
-    #                                        label_visibility="collapsed",
-    #                                        height=250)
-
-
-
-    # ppt_export_container = st.container()
-    # ppt_export_container.markdown("##### Export PowerPoint document with new content when ready")
-    #
-    # # template PPTX document
-    # ppt_template = Presentation("data/highlight_template.pptx")
-    # slide = ppt_template.slides[0]
-    # content_shapes = [i for i in slide.shapes if i.has_text_frame]
-    # objective_block = content_shapes[0]
-    # title_block = content_shapes[1]
-    # reference_block = content_shapes[2]
-    # caption_block = content_shapes[3]
-    # approach_block = content_shapes[4]
-    # impact_block = content_shapes[5]
-    #
-    # bio = io.BytesIO()
-    # ppt_template.save(bio)
-    #
-    # if ppt_export_container:
-    #
-    #     objective_block.text = st.session_state.objective_response
-    #     title_block.text = st.session_state.title_response
-    #     reference_block.text = "fill in"
-    #     caption_block.text = "fill in"
-    #     approach_block.text = st.session_state.approach_response
-    #     impact_block.text = st.session_state.impact_response
-    #
-    #     ppt_export_container.download_button(
-    #         label="Export PowerPoint Document",
-    #         data=bio.getvalue(),
-    #         file_name="modified_template.pptx",
-    #         mime="pptx"
-    #     )
