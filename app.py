@@ -666,9 +666,9 @@ if uploaded_file is not None:
     }
 
     # template word document
-    highlight = importlib.import_module('highlight.data')
-    word_template_file = highlight.highlight_template_file
-    template = DocxTemplate(word_template_file)
+    with importlib.resources.path('highlight.data', 'highlight_template.docx') as word_template_file:
+        template = DocxTemplate(word_template_file)
+
     template.render(word_parameters)
     bio = io.BytesIO()
     template.save(bio)
