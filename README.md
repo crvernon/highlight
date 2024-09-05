@@ -1,3 +1,6 @@
-# highlight
-Generate tuned research highlights using GPT-4
+## highlight
+
+#### Generate publication highlights using AI
+
+### Getting started
 
