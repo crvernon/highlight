@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "highlight"
+description = "Generate publication highlights using AI"
+readme = "README.md"
+version = "0.1.0"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Chris Vernon", email = "chris.vernon@pnnl.gov"},
+
+]
+maintainers = [
+    {name = "Chris Vernon", email = "chris.vernon@pnnl.gov"},
+]
+dependencies = [
+    'docxtpl>=0.16.7',
+    'pptx>=0.6.23',
+    'openai>=1.35.14',
+    'streamlit>=1.36.0',
+    'PyPDF2>=3.0.1',
+    'tiktoken>=0.7.0',
+    'tqdm>=4.66.1',
+]
+classifiers = [
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.0",
+    "pytest-cov>=2.12.1",
+]
+
+deploy = [
+    "twine>=4.0.1",
+]
+
+[project.urls]
+Repository = "https://github.com/crvernon/highlight"
+
+[tool.hatch.build]
+packages = ["highlight"]  # set importable package name to "cerf"
+include = ["highlight"]
