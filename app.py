@@ -1,25 +1,17 @@
 import io
 import os
 
-import argparse
-import json
-import os
-import time
-
-import requests
-import tqdm
-from pexels_api import API
-from PIL import Image
 from docxtpl import DocxTemplate
-from openai import OpenAI
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from pptx import Presentation
+from pptx.util import Pt
+from openai import OpenAI
 import streamlit as st
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 import highlight as hlt
 import prompts
+
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_content(container,
@@ -52,10 +44,12 @@ def generate_content(container,
         # construct word count reduction prompt
         reduction_prompt = prompts.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
 
-        messages = [{"role": "system",
-                     "content": prompts.prompt_queue["system"]},
-                    {"role": "user",
-                     "content": reduction_prompt}]
+        messages = [
+            {"role": "system",
+                "content": prompts.prompt_queue["system"]},
+            {"role": "user",
+                "content": reduction_prompt}
+        ]
 
         reduced_response = client.chat.completions.create(
             model=model,
@@ -66,10 +60,12 @@ def generate_content(container,
 
         response = reduced_response.choices[0].message.content
 
-    container.text_area(label=result_title,
-                        value=response,
-                        label_visibility="collapsed",
-                        height=box_height)
+    container.text_area(
+        label=result_title,
+        value=response,
+        label_visibility="collapsed",
+        height=box_height
+    )
 
     st.write(f"Word count:  {len(response.split())}")
 
@@ -166,9 +162,10 @@ st.write(
 # Render streamlit page
 st.title("Research Highlight Generator")
 
-st.markdown(
-    "This app uses a Large Language Model (LLM) of your choosing to generate formatted research highlight content from an input file."
-)
+st.markdown((
+    "This app uses a Large Language Model (LLM) of your choosing to generate ",
+    " formatted research highlight content from an input file."
+))
 
 st.session_state.model = st.selectbox(
     label="Select your model:",
@@ -305,11 +302,13 @@ if uploaded_file is not None:
     subtitle_container.markdown("Set desired temperature:")
 
     # subtitle slider
-    subtitle_temperature = subtitle_container.slider("Subtitle Temperature",
-                                                     0.0,
-                                                     1.0,
-                                                     0.5,
-                                                     label_visibility="collapsed")
+    subtitle_temperature = subtitle_container.slider(
+        "Subtitle Temperature",
+        0.0,
+        1.0,
+        0.5,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if subtitle_container.button('Generate Subtitle'):
@@ -335,10 +334,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.subtitle_response is not None:
             subtitle_container.markdown("Subtitle Result:")
-            subtitle_container.text_area(label="Subtitle Result:",
-                                         value=st.session_state.subtitle_response,
-                                         label_visibility="collapsed",
-                                         height=50)
+            subtitle_container.text_area(
+                label="Subtitle Result:",
+                value=st.session_state.subtitle_response,
+                label_visibility="collapsed",
+                height=50
+            )
 
     # science section
     science_container = st.container()
@@ -365,11 +366,13 @@ if uploaded_file is not None:
     science_container.markdown("Set desired temperature:")
 
     # slider
-    science_temperature = science_container.slider("Science Summary Temperature",
-                                                   0.0,
-                                                   1.0,
-                                                   0.3,
-                                                   label_visibility="collapsed")
+    science_temperature = science_container.slider(
+        "Science Summary Temperature",
+        0.0,
+        1.0,
+        0.3,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if science_container.button('Generate Science Summary'):
@@ -389,10 +392,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.science_response is not None:
             science_container.markdown("Science Summary Result:")
-            science_container.text_area(label="Science Summary Result:",
-                                        value=st.session_state.science_response,
-                                        label_visibility="collapsed",
-                                        height=250)
+            science_container.text_area(
+                label="Science Summary Result:",
+                value=st.session_state.science_response,
+                label_visibility="collapsed",
+                height=250
+            )
 
     # impact section
     impact_container = st.container()
@@ -419,11 +424,13 @@ if uploaded_file is not None:
     impact_container.markdown("Set desired temperature:")
 
     # slider
-    impact_temperature = impact_container.slider("Impact Summary Temperature",
-                                                   0.0,
-                                                   1.0,
-                                                   0.0,
-                                                   label_visibility="collapsed")
+    impact_temperature = impact_container.slider(
+        "Impact Summary Temperature",
+        0.0,
+        1.0,
+        0.0,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if impact_container.button('Generate Impact Summary'):
@@ -443,10 +450,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.impact_response is not None:
             impact_container.markdown("Impact Summary Result:")
-            impact_container.text_area(label="Impact Summary Result:",
-                                        value=st.session_state.impact_response,
-                                        label_visibility="collapsed",
-                                        height=250)
+            impact_container.text_area(
+                label="Impact Summary Result:",
+                value=st.session_state.impact_response,
+                label_visibility="collapsed",
+                height=250
+            )
 
     # general summary section
     summary_container = st.container()
@@ -495,10 +504,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.summary_response is not None:
             summary_container.markdown("General Summary Result:")
-            summary_container.text_area(label="General Summary Result:",
-                                        value=st.session_state.summary_response,
-                                        label_visibility="collapsed",
-                                        height=400)
+            summary_container.text_area(
+                label="General Summary Result:",
+                value=st.session_state.summary_response,
+                label_visibility="collapsed",
+                height=400
+            )
 
     # figure recommendations section
     figure_container = st.container()
@@ -506,11 +517,13 @@ if uploaded_file is not None:
     figure_container.markdown("Set desired temperature:")
 
     # slider
-    figure_temperature = figure_container.slider("Figure Recommendations Temperature",
-                                                 0.0,
-                                                 1.0,
-                                                 0.9,
-                                                 label_visibility="collapsed")
+    figure_temperature = figure_container.slider(
+        "Figure Recommendations Temperature",
+        0.0,
+        1.0,
+        0.9,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if figure_container.button('Generate Figure Recommendations'):
@@ -533,22 +546,28 @@ if uploaded_file is not None:
         if st.session_state.figure_response is not None:
 
             figure_container.markdown("Figure Recommendations Result:")
-            figure_container.text_area(label="Figure Recommendations Result:",
-                                       value=st.session_state.figure_response,
-                                       label_visibility="collapsed",
-                                       height=200)
+            figure_container.text_area(
+                label="Figure Recommendations Result:",
+                value=st.session_state.figure_response,
+                label_visibility="collapsed",
+                height=200
+            )
 
 
     figure_summary_container = st.container()
-    figure_summary_container.markdown("##### Generate a figure caption that summarizes the work generally to use with the artistic photo above")
+    figure_summary_container.markdown(
+        "##### Generate a figure caption that summarizes the work generally to use with the artistic photo above"
+    )
 
     # slider
     figure_summary_container.markdown("Set desired temperature:")
-    figure_summary_temperature = figure_summary_container.slider("Figure Caption Temperature",
-                                                                 0.0,
-                                                                 1.0,
-                                                                 0.1,
-                                                                 label_visibility="collapsed")
+    figure_summary_temperature = figure_summary_container.slider(
+        "Figure Caption Temperature",
+        0.0,
+        1.0,
+        0.1,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if figure_summary_container.button('Generate Figure Caption'):
@@ -678,11 +697,13 @@ if uploaded_file is not None:
     objective_container.markdown("Set desired temperature:")
 
     # slider
-    objective_temperature = objective_container.slider("Objective Temperature",
-                                                   0.0,
-                                                   1.0,
-                                                   0.3,
-                                                   label_visibility="collapsed")
+    objective_temperature = objective_container.slider(
+        "Objective Temperature",
+        0.0,
+        1.0,
+        0.3,
+        label_visibility="collapsed"
+)
 
     # build container content
     if objective_container.button('Generate Objective'):
@@ -700,10 +721,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.objective_response is not None:
             objective_container.markdown("Objective Result:")
-            objective_container.text_area(label="Objective Result:",
-                                        value=st.session_state.objective_response,
-                                        label_visibility="collapsed",
-                                        height=250)
+            objective_container.text_area(
+                label="Objective Result:",
+                value=st.session_state.objective_response,
+                label_visibility="collapsed",
+                height=250
+            )
 
     # approach section
     approach_container = st.container()
@@ -721,11 +744,13 @@ if uploaded_file is not None:
     approach_container.markdown("Set desired temperature:")
 
     # slider
-    approach_temperature = approach_container.slider("Approach Temperature",
-                                                     0.0,
-                                                     1.0,
-                                                     0.1,
-                                                     label_visibility="collapsed")
+    approach_temperature = approach_container.slider(
+        "Approach Temperature",
+        0.0,
+        1.0,
+        0.1,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if approach_container.button('Generate Approach'):
@@ -744,10 +769,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.approach_response is not None:
             approach_container.markdown("Approach Result:")
-            approach_container.text_area(label="Approach Result:",
-                                        value=st.session_state.approach_response,
-                                        label_visibility="collapsed",
-                                        height=250)
+            approach_container.text_area(
+                label="Approach Result:",
+                value=st.session_state.approach_response,
+                label_visibility="collapsed",
+                height=250
+            )
 
     # power point impact section
     ppt_impact_container = st.container()
@@ -789,10 +816,12 @@ if uploaded_file is not None:
     else:
         if st.session_state.ppt_impact_response is not None:
             ppt_impact_container.markdown("Impact Points Result:")
-            ppt_impact_container.text_area(label="Impact Points Result:",
-                                        value=st.session_state.ppt_impact_response,
-                                        label_visibility="collapsed",
-                                        height=250)
+            ppt_impact_container.text_area(
+                label="Impact Points Result:",
+                value=st.session_state.ppt_impact_response,
+                label_visibility="collapsed",
+                height=250
+            )
 
     # power point figure selection section
     ppt_figure_selection = st.container()
@@ -810,11 +839,13 @@ if uploaded_file is not None:
     ppt_figure_selection.markdown("Set desired temperature:")
 
     # slider
-    ppt_figure_selection_temperature = ppt_figure_selection.slider("Figure recommendation Temperature",
-                                                                     0.0,
-                                                                     1.0,
-                                                                     0.2,
-                                                                     label_visibility="collapsed")
+    ppt_figure_selection_temperature = ppt_figure_selection.slider(
+        "Figure recommendation Temperature",
+        0.0,
+        1.0,
+        0.2,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if ppt_figure_selection.button('Generate Figure Recommendation'):
@@ -832,7 +863,63 @@ if uploaded_file is not None:
     else:
         if st.session_state.figure_recommendation is not None:
             ppt_figure_selection.markdown("Figure Recommendation Result:")
-            ppt_figure_selection.text_area(label="Figure Recommendation Result:",
-                                           value=st.session_state.figure_recommendation,
-                                           label_visibility="collapsed",
-                                           height=250)
+            ppt_figure_selection.text_area(
+                label="Figure Recommendation Result:",
+                value=st.session_state.figure_recommendation,
+                label_visibility="collapsed",
+                height=250
+            )
+
+
+    # ppt_figure_output = st.container()
+    # ppt_figure_output.markdown("##### Export PPT slide with new content when ready")
+
+    # highlight_ppt_template = "data/highlight_template.pptx"
+    # ppt = Presentation(highlight_ppt_template)
+
+    # # get target slide
+    # slide = ppt.slides[0]
+
+    # # queue named items for retrieval; ignore picture for now
+    # item_queue = {i.text_frame.text: i.text_frame for i in slide.shapes if i.shape_type != 13}
+
+    # # title
+    # if st.session_state.title_response is not None:
+    #     text_frame = item_queue["title"]
+    #     text_frame.clear()
+    #     p = text_frame.add_paragraph()
+    #     p.text = st.session_state.title_response
+    #     p.font.name = "Arial"
+    #     p.font.size = Pt(30)
+
+    # # objective 
+    # if st.session_state.objective_response is not None:
+    #     text_frame = item_queue["objective_0"]
+    #     text_frame.clear()
+    #     p = text_frame.add_paragraph()
+    #     p.text = st.session_state.objective_response
+    #     p.font.name = "Calibri"
+    #     p.font.size = Pt(13)
+    #     p.level = 0
+
+    # # citation
+    # if st.session_state.citation is not None:
+    #     text_frame = item_queue["citation"]
+    #     text_frame.clear()
+    #     text_frame.text = st.session_state.citation
+    #     text_frame.font.name = "Calibri"
+    #     text_frame.font.size = Pt(10)
+
+    # # save this to an in-memory bytes buffer
+    # ppt_io = io.BytesIO()
+    # ppt.save(ppt_io)
+    # ppt_io.seek(0)
+
+    # if ppt:
+    #     ppt_figure_output.download_button(
+    #         label="Download Modified PowerPoint",
+    #         data=ppt_io,
+    #         file_name="modified_template.pptx",
+    #         mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    #     )
+
