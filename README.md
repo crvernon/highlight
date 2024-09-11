@@ -1,4 +1,6 @@
 [![build](https://github.com/crvernon/highlight/actions/workflows/build.yml/badge.svg)](https://github.com/crvernon/highlight/actions/workflows/build.yml)
+[![DOI](https://zenodo.org/badge/632456925.svg)](https://zenodo.org/doi/10.5281/zenodo.13750915)
+
 
 ## highlight
 
