@@ -27,6 +27,7 @@ def generate_content(container,
                      model="gpt-4o"):
 
     response = hlt.generate_prompt(
+        client,
         content=content,
         prompt_name=prompt_name,
         temperature=temperature,

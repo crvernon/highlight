@@ -230,6 +230,7 @@ prompt_queue = {
 
 
 def generate_prompt(
+    client,
     content: str,
     prompt_name: str = "title",
     max_tokens: int = 50,
@@ -268,6 +269,7 @@ def generate_prompt(
         prompt = prompt_queue[prompt_name].format(content)
 
     return generate_content(
+        client=client,
         system_scope=system_scope,
         prompt=prompt,
         max_tokens=max_tokens,

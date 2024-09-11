@@ -1,10 +1,6 @@
 import PyPDF2
 import tiktoken
 from tqdm import tqdm
-from openai import OpenAI
-
-
-client = OpenAI()
 
 
 def get_token_count(text, model="gpt-4o"):
@@ -68,9 +64,12 @@ def read_text(file_object: object,) -> dict:
     }
 
 
-def content_reduction(document_list,
-                      system_scope,
-                      model):
+def content_reduction(
+    client,
+    document_list,
+    system_scope,
+    model
+):
     """Remove irrelevant content from input text."""
 
     prompt = """Remove irrelevant content from the following text.\n\n{text}\n\n}"""
@@ -80,10 +79,10 @@ def content_reduction(document_list,
         page_content = document_list[i].page_content
         page_tokens = get_token_count(page_content)
 
-        messages = [{"role": "system",
-                     "content": system_scope},
-                    {"role": "user",
-                     "content": prompt.format(text=page_content)}]
+        messages = [
+            {"role": "system", "content": system_scope},
+            {"role": "user", "content": prompt.format(text=page_content)}
+        ]
 
         response = client.chat.completions.create(model=model,
         max_tokens=page_tokens,
@@ -95,12 +94,15 @@ def content_reduction(document_list,
     return content
 
 
-def generate_content(system_scope,
-                     prompt,
-                     max_tokens=50,
-                     temperature=0.0,
-                     max_allowable_tokens=8192,
-                     model="gpt-4o"):
+def generate_content(
+    client,
+    system_scope,
+    prompt,
+    max_tokens=50,
+    temperature=0.0,
+    max_allowable_tokens=8192,
+    model="gpt-4o"
+):
 
     n_prompt_tokens = get_token_count(prompt) + max_tokens
 
