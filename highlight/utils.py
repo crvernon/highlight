@@ -1,6 +1,6 @@
-import PyPDF2
 import tiktoken
 from tqdm import tqdm
+from pypdf import PdfReader
 
 
 def get_token_count(text, model="gpt-4o"):
@@ -43,7 +43,7 @@ def read_pdf(file_object: object, reference_indicator: str = "References\n") -> 
     n_pages = 0
 
     # creating a pdf reader object
-    reader = PyPDF2.PdfReader(file_object)
+    reader = PdfReader(file_object)
 
     for page in reader.pages:
 

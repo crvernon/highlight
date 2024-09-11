@@ -21,7 +21,7 @@ dependencies = [
     'python-pptx>=0.6.23',
     'openai>=1.35.14',
     'streamlit>=1.36.0',
-    'PyPDF2>=3.0.1',
+    'pypdf>=3.0.1',
     'tiktoken>=0.7.0',
     'tqdm>=4.66.1',
 ]
