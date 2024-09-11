@@ -8,5 +8,5 @@ authors:
   given-names: "Jennie S."
   orcid: "https://orcid.org/0000-0002-7833-9456"
 title: "highlight: Generate tuned research highlights using AI"
-version: 0.1.0
+version: 0.1.1
 url: "https://github.com/crvernon/highlight"
