@@ -24,6 +24,13 @@ Replace `your_api_key_here` with your actual OpenAI API key.
 
 ### Installation
 
+#### Clone this repository
+Navigate to the directory you want to store this repo in and run:
+
+```bash
+git clone https://github.com/crvernon/highlight.git
+```
+
 To install this Python package in a virtual environment, you can use either pip or Anaconda.
 
 #### Using pip
