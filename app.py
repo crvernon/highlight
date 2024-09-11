@@ -31,21 +31,22 @@ def generate_content(
     """
     Generate content using the OpenAI API based on the provided parameters and display it in a Streamlit container.
 
-    Parameters:
-    container (streamlit.container): The Streamlit container to display the generated content.
-    content (str): The text content to be used for generating the prompt.
-    prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
-    result_title (str, optional): The title to display above the generated content. Defaults to "Title Result:".
-    max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
-    temperature (float, optional): The sampling temperature. Defaults to 0.0.
-    box_height (int, optional): The height of the text area box to display the generated content. Defaults to 200.
-    additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
-    max_word_count (int, optional): The maximum word count for the generated content. Defaults to 100.
-    min_word_count (int, optional): The minimum word count for the generated content. Defaults to 75.
-    model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
+    Args:
+        container (streamlit.container): The Streamlit container to display the generated content.
+        content (str): The text content to be used for generating the prompt.
+        prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
+        result_title (str, optional): The title to display above the generated content. Defaults to "Title Result:".
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
+        temperature (float, optional): The sampling temperature. Defaults to 0.0.
+        box_height (int, optional): The height of the text area box to display the generated content. Defaults to 200.
+        additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
+        max_word_count (int, optional): The maximum word count for the generated content. Defaults to 100.
+        min_word_count (int, optional): The minimum word count for the generated content. Defaults to 75.
+        max_allowable_tokens (int, optional): The maximum allowable tokens for the content. Defaults to 150000.
+        model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
 
     Returns:
-    str: The generated content.
+        str: The generated content.
     """
 
     response = hlt.generate_prompt(

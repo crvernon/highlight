@@ -5,14 +5,14 @@ from tqdm import tqdm
 
 def get_token_count(text, model="gpt-4o"):
     """
-    Calculate the number of tokens in a given text based on the specified model.
+    Calculate the number of tokens in the provided text using the specified model for tokenization.
 
-    Parameters:
-    text (str): The text content to be tokenized.
-    model (str): The model to use for tokenization. Default is "gpt-4o".
+    Args:
+        text (str): The text content to be tokenized.
+        model (str): The model to use for tokenization. Default is "gpt-4o".
 
     Returns:
-    int: The number of tokens in the text.
+        int: The total number of tokens in the text.
     """
 
     encoding = tiktoken.encoding_for_model(model)
@@ -26,13 +26,17 @@ def read_pdf(file_object: object, reference_indicator: str = "References\n") -> 
     """
     Extract text content from a PDF file until a specified reference indicator is encountered.
 
-    Parameters:
-    file_object (object): The PDF file object to read from.
-    reference_indicator (str): The string indicating the start of the reference section. Default is "References\n".
+    Args:
+        file_object (object): The PDF file object to read from.
+        reference_indicator (str): The string indicating the start of the reference section. Default is "References\n".
 
     Returns:
-    dict: A dictionary containing the extracted content, number of pages read, number of characters, 
-          number of words, and number of tokens.
+        dict: A dictionary containing:
+            - content (str): The extracted text content.
+            - n_pages (int): The number of pages read.
+            - n_characters (int): The number of characters in the extracted content.
+            - n_words (int): The number of words in the extracted content.
+            - n_tokens (int): The number of tokens in the extracted content.
     """
 
     content = ""
@@ -67,14 +71,18 @@ def read_pdf(file_object: object, reference_indicator: str = "References\n") -> 
 
 def read_text(file_object: object) -> dict:
     """
-    Read text file input and return its content along with metadata.
+    Read the content of a text file and return its content along with various metadata.
 
-    Parameters:
-    file_object (object): The file object to read from.
+    Args:
+        file_object (object): The file object to read from.
 
     Returns:
-    dict: A dictionary containing the content, number of pages, number of characters,
-          number of words, and number of tokens.
+        dict: A dictionary containing:
+            - content (str): The extracted text content.
+            - n_pages (int): The number of pages (always 1 for text files).
+            - n_characters (int): The number of characters in the extracted content.
+            - n_words (int): The number of words in the extracted content.
+            - n_tokens (int): The number of tokens in the extracted content.
     """
     content = bytes.decode(file_object.read(), 'utf-8')
 
@@ -94,16 +102,16 @@ def content_reduction(
     model
 ):
     """
-    Remove irrelevant content from input text.
+    Reduce the input text by removing irrelevant content.
 
-    Parameters:
-    client (OpenAI): The OpenAI client instance.
-    document_list (list): A list of documents to process.
-    system_scope (str): The system scope or context for the prompt.
-    model (str): The model to use for content reduction.
+    Args:
+        client (OpenAI): The OpenAI client instance.
+        document_list (list): A list of documents to process.
+        system_scope (str): The system scope or context for the prompt.
+        model (str): The model to use for content reduction.
 
     Returns:
-    str: The content with irrelevant parts removed.
+        str: The content with irrelevant parts removed.
     """
 
     prompt = """Remove irrelevant content from the following text.\n\n{text}\n\n}"""
@@ -142,20 +150,20 @@ def generate_content(
     """
     Generate content using the OpenAI API based on the provided prompt and parameters.
 
-    Parameters:
-    client (OpenAI): The OpenAI client instance.
-    system_scope (str): The system scope or context for the prompt.
-    prompt (str): The user prompt to generate content from.
-    max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
-    temperature (float, optional): The sampling temperature. Defaults to 0.0.
-    max_allowable_tokens (int, optional): The maximum allowable tokens for the prompt and response. Defaults to 8192.
-    model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
+    Args:
+        client (OpenAI): The OpenAI client instance.
+        system_scope (str): The system scope or context for the prompt.
+        prompt (str): The user prompt to generate content from.
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
+        temperature (float, optional): The sampling temperature. Defaults to 0.0.
+        max_allowable_tokens (int, optional): The maximum allowable tokens for the prompt and response. Defaults to 8192.
+        model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
 
     Returns:
-    str: The generated content.
+        str: The generated content.
 
     Raises:
-    RuntimeError: If the total number of tokens in the prompt and response exceeds max_allowable_tokens.
+        RuntimeError: If the total number of tokens in the prompt and response exceeds max_allowable_tokens.
     """
 
     n_prompt_tokens = get_token_count(prompt) + max_tokens

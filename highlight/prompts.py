@@ -238,6 +238,22 @@ def generate_prompt(
     additional_content: str = None,
     model: str = "gpt-4"
 ) -> str:
+    """
+    Generate a prompt using the provided parameters and the prompt queue.
+
+    Args:
+        client: The OpenAI client to use for generating the prompt.
+        content (str): The main text content to be used in the prompt.
+        prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
+        max_allowable_tokens (int, optional): The maximum allowable tokens for the content. Defaults to 150000.
+        temperature (float, optional): The sampling temperature. Defaults to 0.0.
+        additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
+        model (str, optional): The model to use for content generation. Defaults to "gpt-4".
+
+    Returns:
+        str: The generated prompt.
+    """
 
     if prompt_name in ("objective",):
         prompt = prompt_queue[prompt_name].format(EXAMPLE_TEXT_ONE, EXAMPLE_TEXT_TWO, content)
