@@ -1,4 +1,4 @@
-from highlight.prompts import prompt_queue, generate_prompt
+from highlight.prompts import prompt_queue
 from highlight.utils import *
 
 

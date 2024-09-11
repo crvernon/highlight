@@ -1,6 +1,9 @@
 import tiktoken
 from tqdm import tqdm
 from pypdf import PdfReader
+import streamlit as st
+
+import highlight.prompts as prompts
 
 
 def get_token_count(text, model="gpt-4o"):
@@ -138,7 +141,7 @@ def content_reduction(
     return content
 
 
-def generate_content(
+def generate_prompt_content(
     client,
     system_scope,
     prompt,
@@ -189,3 +192,163 @@ def generate_content(
     content = response.choices[0].message.content
 
     return content
+
+
+def generate_content(
+    client,
+    container,
+    content,
+    prompt_name="title",
+    result_title="Title Result:",
+    max_tokens=50,
+    temperature=0.0,
+    box_height=200,
+    additional_content=None,
+    max_word_count=100,
+    min_word_count=75,
+    max_allowable_tokens: int = 150000,
+    model="gpt-4o"
+):
+    """
+    Generate content using the OpenAI API based on the provided parameters and display it in a Streamlit container.
+
+    Args:
+        container (streamlit.container): The Streamlit container to display the generated content.
+        content (str): The text content to be used for generating the prompt.
+        prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
+        result_title (str, optional): The title to display above the generated content. Defaults to "Title Result:".
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
+        temperature (float, optional): The sampling temperature. Defaults to 0.0.
+        box_height (int, optional): The height of the text area box to display the generated content. Defaults to 200.
+        additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
+        max_word_count (int, optional): The maximum word count for the generated content. Defaults to 100.
+        min_word_count (int, optional): The minimum word count for the generated content. Defaults to 75.
+        max_allowable_tokens (int, optional): The maximum allowable tokens for the content. Defaults to 150000.
+        model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
+
+    Returns:
+        str: The generated content.
+    """
+
+    response = generate_prompt(
+        client,
+        content=content,
+        prompt_name=prompt_name,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        max_allowable_tokens=max_allowable_tokens,
+        additional_content=additional_content,
+        model=model
+    )
+
+    container.markdown(result_title)
+
+    word_count = len(response.split())
+
+    if word_count > max_word_count:
+
+        # construct word count reduction prompt
+        reduction_prompt = prompts.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
+
+        messages = [
+            {"role": "system", "content": prompts.prompt_queue["system"]},
+            {"role": "user", "content": reduction_prompt}
+        ]
+
+        reduced_response = client.chat.completions.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=messages
+        )
+
+        response = reduced_response.choices[0].message.content
+
+    container.text_area(
+        label=result_title,
+        value=response,
+        label_visibility="collapsed",
+        height=box_height
+    )
+
+    st.write(f"Word count:  {len(response.split())}")
+
+    return response
+
+
+def generate_prompt(
+    client,
+    content: str,
+    prompt_name: str = "title",
+    max_tokens: int = 50,
+    max_allowable_tokens: int = 150000,
+    temperature: float = 0.0,
+    additional_content: str = None,
+    model: str = "gpt-4"
+) -> str:
+    """
+    Generate a prompt using the provided parameters and the prompt queue.
+
+    Args:
+        client: The OpenAI client to use for generating the prompt.
+        content (str): The main text content to be used in the prompt.
+        prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
+        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
+        max_allowable_tokens (int, optional): The maximum allowable tokens for the content. Defaults to 150000.
+        temperature (float, optional): The sampling temperature. Defaults to 0.0.
+        additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
+        model (str, optional): The model to use for content generation. Defaults to "gpt-4".
+
+    Returns:
+        str: The generated prompt.
+    """
+
+    if prompt_name in ("objective",):
+        prompt = prompts.prompt_queue[prompt_name].format(
+            prompts.EXAMPLE_TEXT_ONE, 
+            prompts.EXAMPLE_TEXT_TWO, 
+            content
+        )
+
+    elif prompt_name in ("approach",):
+        if additional_content is None:
+            additional_content = content
+        prompt = prompts.prompt_queue[prompt_name].format(
+            prompts.EXAMPLE_TEXT_TWO, 
+            content, 
+            additional_content
+        )
+
+    elif prompt_name in ("subtitle",):
+        if additional_content is None:
+            additional_content = content
+        prompt = prompts.prompt_queue[prompt_name].format(
+            content, 
+            additional_content
+        )
+
+
+    elif prompt_name in (
+        "figure", 
+        "caption", 
+        "impact", 
+        "summary", 
+        "ppt_impact", 
+        "title", 
+        "science", 
+        "figure_caption", 
+        "figure_choice", 
+        "citation",
+        "funding"
+    ):
+        prompt = prompts.prompt_queue[prompt_name].format(content)
+
+    return generate_prompt_content(
+        client=client,
+        system_scope=prompts.SYSTEM_SCOPE,
+        prompt=prompt,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        max_allowable_tokens=max_allowable_tokens,
+        model=model
+    )

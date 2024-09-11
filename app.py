@@ -11,89 +11,15 @@ import streamlit as st
 import highlight as hlt
 
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def generate_content(
-    container,
-    content,
-    prompt_name="title",
-    result_title="Title Result:",
-    max_tokens=50,
-    temperature=0.0,
-    box_height=200,
-    additional_content=None,
-    max_word_count=100,
-    min_word_count=75,
-    max_allowable_tokens: int = 150000,
-    model="gpt-4o"
-):
-    """
-    Generate content using the OpenAI API based on the provided parameters and display it in a Streamlit container.
-
-    Args:
-        container (streamlit.container): The Streamlit container to display the generated content.
-        content (str): The text content to be used for generating the prompt.
-        prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
-        result_title (str, optional): The title to display above the generated content. Defaults to "Title Result:".
-        max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
-        temperature (float, optional): The sampling temperature. Defaults to 0.0.
-        box_height (int, optional): The height of the text area box to display the generated content. Defaults to 200.
-        additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
-        max_word_count (int, optional): The maximum word count for the generated content. Defaults to 100.
-        min_word_count (int, optional): The minimum word count for the generated content. Defaults to 75.
-        max_allowable_tokens (int, optional): The maximum allowable tokens for the content. Defaults to 150000.
-        model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
-
-    Returns:
-        str: The generated content.
-    """
-
-    response = hlt.generate_prompt(
-        client,
-        content=content,
-        prompt_name=prompt_name,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        max_allowable_tokens=max_allowable_tokens,
-        additional_content=additional_content,
-        model=model
-    )
-
-    container.markdown(result_title)
-
-    word_count = len(response.split())
-
-    if word_count > max_word_count:
-
-        # construct word count reduction prompt
-        reduction_prompt = hlt.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
-
-        messages = [
-            {"role": "system", "content": hlt.prompt_queue["system"]},
-            {"role": "user", "content": reduction_prompt}
-        ]
-
-        reduced_response = client.chat.completions.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=messages
-        )
-
-        response = reduced_response.choices[0].message.content
-
-    container.text_area(
-        label=result_title,
-        value=response,
-        label_visibility="collapsed",
-        height=box_height
-    )
-
-    st.write(f"Word count:  {len(response.split())}")
-
-    return response
-
+if "client" not in st.session_state:
+    key = os.getenv("OPENAI_API_KEY", default=None)
+    if key is None:
+        raise KeyError((
+            "No key found for 'OPENAI_API_KEY' system variable. " + 
+            "Obtain your OpenAI API key from the OpenAI website: https://platform.openai.com/api-keys"
+        ))
+    else:
+        st.session_state.client = OpenAI(api_key=key)
 
 if "reduce_document" not in st.session_state:
     st.session_state.reduce_document = False
@@ -186,7 +112,7 @@ st.write(
 st.title("Research Highlight Generator")
 
 st.markdown((
-    "This app uses a Large Language Model (LLM) of your choosing to generate ",
+    "This app uses a Large Language Model (LLM) of your choosing to generate " + 
     " formatted research highlight content from an input file."
 ))
 
@@ -293,7 +219,8 @@ if uploaded_file is not None:
     # build container content
     if title_container.button('Generate Title'):
 
-        st.session_state.title_response = generate_content(
+        st.session_state.title_response = hlt.generate_content(
+            client=st.session_state.client,
             container=title_container,
             content=content_dict["content"],
             prompt_name="title",
@@ -345,7 +272,8 @@ if uploaded_file is not None:
             st.write("Please generate a Title first.  Subtitle generation considers the title response.")
         else:
 
-            st.session_state.subtitle_response = generate_content(
+            st.session_state.subtitle_response = hlt.generate_content(
+                client=st.session_state.client,
                 container=subtitle_container,
                 content=content_dict["content"],
                 prompt_name="subtitle",
@@ -405,7 +333,8 @@ if uploaded_file is not None:
 
     # build container content
     if science_container.button('Generate Science Summary'):
-        st.session_state.science_response = generate_content(
+        st.session_state.science_response = hlt.generate_content(
+            client=st.session_state.client,
             container=science_container,
             content=content_dict["content"],
             prompt_name="science",
@@ -464,7 +393,8 @@ if uploaded_file is not None:
 
     # build container content
     if impact_container.button('Generate Impact Summary'):
-        st.session_state.impact_response = generate_content(
+        st.session_state.impact_response = hlt.generate_content(
+            client=st.session_state.client,
             container=impact_container,
             content=content_dict["content"],
             prompt_name="impact",
@@ -519,7 +449,8 @@ if uploaded_file is not None:
 
     # build container content
     if summary_container.button('Generate General Summary'):
-        st.session_state.summary_response = generate_content(
+        st.session_state.summary_response = hlt.generate_content(
+            client=st.session_state.client,
             container=summary_container,
             content=content_dict["content"],
             prompt_name="summary",
@@ -563,7 +494,8 @@ if uploaded_file is not None:
         if st.session_state.summary_response is None:
             st.write("Please generate a general summary first.")
         else:
-            st.session_state.figure_response = generate_content(
+            st.session_state.figure_response = hlt.generate_content(
+                client=st.session_state.client,
                 container=figure_container,
                 content=st.session_state.summary_response,
                 prompt_name="figure",
@@ -608,7 +540,8 @@ if uploaded_file is not None:
         if st.session_state.summary_response is None:
             st.write("Please generate a general summary first.")
         else:
-            st.session_state.figure_caption = generate_content(
+            st.session_state.figure_caption = hlt.generate_content(
+                client=st.session_state.client,
                 container=figure_summary_container,
                 content=st.session_state.summary_response,
                 prompt_name="figure_caption",
@@ -635,7 +568,8 @@ if uploaded_file is not None:
     citation_container.markdown("##### Citation for the paper in Chicago style")
     
     if citation_container.button('Generate Citation'):
-        st.session_state.citation = generate_content(
+        st.session_state.citation = hlt.generate_content(
+            client=st.session_state.client,
             container=citation_container,
             content=content_dict["content"],
             prompt_name="citation",
@@ -661,7 +595,8 @@ if uploaded_file is not None:
     funding_container.markdown("##### Funding statement from the paper")
     
     if funding_container.button('Generate funding statement'):
-        st.session_state.funding = generate_content(
+        st.session_state.funding = hlt.generate_content(
+            client=st.session_state.client,
             container=funding_container,
             content=content_dict["content"],
             prompt_name="funding",
@@ -717,7 +652,7 @@ if uploaded_file is not None:
         )
 
     # power point slide content
-    st.markdown("### Content to fill in PowerPoint template template:")
+    st.markdown("### Content to fill in PowerPoint template:")
 
     # objective section
     objective_container = st.container()
@@ -745,7 +680,7 @@ if uploaded_file is not None:
 
     # build container content
     if objective_container.button('Generate Objective'):
-        st.session_state.objective_response = generate_content(
+        st.session_state.objective_response = hlt.generate_content(
             container=objective_container,
             content=content_dict["content"],
             prompt_name="objective",
@@ -793,7 +728,8 @@ if uploaded_file is not None:
 
     # build container content
     if approach_container.button('Generate Approach'):
-        st.session_state.approach_response = generate_content(
+        st.session_state.approach_response = hlt.generate_content(
+            client=st.session_state.client,
             container=approach_container,
             content=content_dict["content"],
             prompt_name="approach",
@@ -842,7 +778,8 @@ if uploaded_file is not None:
 
     # build container content
     if ppt_impact_container.button('Generate Impact Points'):
-        st.session_state.ppt_impact_response = generate_content(
+        st.session_state.ppt_impact_response = hlt.generate_content(
+            client=st.session_state.client,
             container=ppt_impact_container,
             content=content_dict["content"],
             prompt_name="ppt_impact",
@@ -890,7 +827,8 @@ if uploaded_file is not None:
 
     # build container content
     if ppt_figure_selection.button('Generate Figure Recommendation'):
-        st.session_state.figure_recommendation = generate_content(
+        st.session_state.figure_recommendation = hlt.generate_content(
+            client=st.session_state.client,
             container=ppt_figure_selection,
             content=content_dict["content"],
             prompt_name="figure_choice",
@@ -916,7 +854,7 @@ if uploaded_file is not None:
     # ppt_figure_output = st.container()
     # ppt_figure_output.markdown("##### Export PPT slide with new content when ready")
 
-    # highlight_ppt_template = "data/highlight_template.pptx"
+    # highlight_ppt_template = importlib.resources.files('highlight.data').joinpath('highlight_template.pptx')
     # ppt = Presentation(highlight_ppt_template)
 
     # # get target slide
