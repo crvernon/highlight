@@ -1,11 +1,10 @@
 from highlight.utils import generate_content
 
 
-example_text_one = """Multisector Dynamics: Advancing the Science of Complex Adaptive Human-Earth Systems.  The field of MultiSector Dynamics (MSD) explores the dynamics and co-evolutionary pathways of human and Earth systems with a focus on critical goods, services, and amenities delivered to people through interdependent sectors. This commentary lays out core definitions and concepts, identifies MSD science questions in the context of the current state of knowledge, and describes ongoing activities to expand capacities for open science, leverage revolutions in data and computing, and grow and diversify the MSD workforce. Central to our vision is the ambition of advancing the next generation of complex adaptive human-Earth systems science to better address interconnected risks, increase resilience, and improve sustainability. This will require convergent research and the integration of ideas and methods from multiple disciplines. Understanding the tradeoffs, synergies, and complexities that exist in coupled human-Earth systems is particularly important in the context of energy transitions and increased future shocks."""
-example_text_two = """The Role of Regional Connections in Planning for Future Power System Operations Under Climate Extremes.  Identifying the sensitivity of future power systems to climate extremes must consider the concurrent effects of changing climate and evolving power systems. We investigated the sensitivity of a Western U.S. power system to isolated and combined heat and drought when it has low (5%) and moderate (31%) variable renewable energy shares, representing historic and future systems. We used an electricity operational model combined with a model of historically extreme drought (for hydropower and freshwater-reliant thermoelectric generators) over the Western U.S. and a synthetic, regionally extreme heat event in Southern California (for thermoelectric generators and electricity load). We found that the drought has the highest impact on summertime production cost (+10% to +12%), while temperature-based deratings have minimal effect (at most +1%). The Southern California heat wave scenario impacting load increases summertime regional net imports to Southern California by 10–14%, while the drought decreases them by 6–12%. Combined heat and drought conditions have a moderate effect on imports to Southern California (−2%) in the historic system and a stronger effect (+8%) in the future system. Southern California dependence on other regions decreases in the summertime with the moderate increase in variable renewable energy (−34% imports), but hourly peak regional imports are maintained under those infrastructure changes. By combining synthetic and historically driven conditions to test two infrastructures, we consolidate the importance of considering compounded heat wave and drought in planning studies and suggest that region-to-region energy transfers during peak periods are key to optimal operations under climate extremes."""
-system_scope = """You are a technical science editor.  You are constructing high impact highlight content from recent publications."""
-
-max_allowable_tokens = 150000
+# globals
+EXAMPLE_TEXT_ONE = """Multisector Dynamics: Advancing the Science of Complex Adaptive Human-Earth Systems.  The field of MultiSector Dynamics (MSD) explores the dynamics and co-evolutionary pathways of human and Earth systems with a focus on critical goods, services, and amenities delivered to people through interdependent sectors. This commentary lays out core definitions and concepts, identifies MSD science questions in the context of the current state of knowledge, and describes ongoing activities to expand capacities for open science, leverage revolutions in data and computing, and grow and diversify the MSD workforce. Central to our vision is the ambition of advancing the next generation of complex adaptive human-Earth systems science to better address interconnected risks, increase resilience, and improve sustainability. This will require convergent research and the integration of ideas and methods from multiple disciplines. Understanding the tradeoffs, synergies, and complexities that exist in coupled human-Earth systems is particularly important in the context of energy transitions and increased future shocks."""
+EXAMPLE_TEXT_TWO = """The Role of Regional Connections in Planning for Future Power System Operations Under Climate Extremes.  Identifying the sensitivity of future power systems to climate extremes must consider the concurrent effects of changing climate and evolving power systems. We investigated the sensitivity of a Western U.S. power system to isolated and combined heat and drought when it has low (5%) and moderate (31%) variable renewable energy shares, representing historic and future systems. We used an electricity operational model combined with a model of historically extreme drought (for hydropower and freshwater-reliant thermoelectric generators) over the Western U.S. and a synthetic, regionally extreme heat event in Southern California (for thermoelectric generators and electricity load). We found that the drought has the highest impact on summertime production cost (+10% to +12%), while temperature-based deratings have minimal effect (at most +1%). The Southern California heat wave scenario impacting load increases summertime regional net imports to Southern California by 10–14%, while the drought decreases them by 6–12%. Combined heat and drought conditions have a moderate effect on imports to Southern California (−2%) in the historic system and a stronger effect (+8%) in the future system. Southern California dependence on other regions decreases in the summertime with the moderate increase in variable renewable energy (−34% imports), but hourly peak regional imports are maintained under those infrastructure changes. By combining synthetic and historically driven conditions to test two infrastructures, we consolidate the importance of considering compounded heat wave and drought in planning studies and suggest that region-to-region energy transfers during peak periods are key to optimal operations under climate extremes."""
+SYSTEM_SCOPE = """You are a technical science editor.  You are constructing high impact highlight content from recent publications."""
 
 prompt_queue = {
     "system": """You are a technical science editor.  You are constructing high impact highlight content from recent publications.""",
@@ -234,18 +233,19 @@ def generate_prompt(
     content: str,
     prompt_name: str = "title",
     max_tokens: int = 50,
+    max_allowable_tokens: int = 150000,
     temperature: float = 0.0,
     additional_content: str = None,
     model: str = "gpt-4"
 ) -> str:
 
     if prompt_name in ("objective",):
-        prompt = prompt_queue[prompt_name].format(example_text_one, example_text_two, content)
+        prompt = prompt_queue[prompt_name].format(EXAMPLE_TEXT_ONE, EXAMPLE_TEXT_TWO, content)
 
     elif prompt_name in ("approach",):
         if additional_content is None:
             additional_content = content
-        prompt = prompt_queue[prompt_name].format(example_text_two, content, additional_content)
+        prompt = prompt_queue[prompt_name].format(EXAMPLE_TEXT_TWO, content, additional_content)
 
     elif prompt_name in ("subtitle",):
         if additional_content is None:
@@ -270,7 +270,7 @@ def generate_prompt(
 
     return generate_content(
         client=client,
-        system_scope=system_scope,
+        system_scope=SYSTEM_SCOPE,
         prompt=prompt,
         max_tokens=max_tokens,
         temperature=temperature,

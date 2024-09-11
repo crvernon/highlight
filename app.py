@@ -14,17 +14,39 @@ import highlight as hlt
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def generate_content(container,
-                     content,
-                     prompt_name="title",
-                     result_title="Title Result:",
-                     max_tokens=50,
-                     temperature=0.0,
-                     box_height=200,
-                     additional_content=None,
-                     max_word_count=100,
-                     min_word_count=75,
-                     model="gpt-4o"):
+def generate_content(
+    container,
+    content,
+    prompt_name="title",
+    result_title="Title Result:",
+    max_tokens=50,
+    temperature=0.0,
+    box_height=200,
+    additional_content=None,
+    max_word_count=100,
+    min_word_count=75,
+    max_allowable_tokens: int = 150000,
+    model="gpt-4o"
+):
+    """
+    Generate content using the OpenAI API based on the provided parameters and display it in a Streamlit container.
+
+    Parameters:
+    container (streamlit.container): The Streamlit container to display the generated content.
+    content (str): The text content to be used for generating the prompt.
+    prompt_name (str, optional): The name of the prompt to use. Defaults to "title".
+    result_title (str, optional): The title to display above the generated content. Defaults to "Title Result:".
+    max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 50.
+    temperature (float, optional): The sampling temperature. Defaults to 0.0.
+    box_height (int, optional): The height of the text area box to display the generated content. Defaults to 200.
+    additional_content (str, optional): Additional content to include in the prompt. Defaults to None.
+    max_word_count (int, optional): The maximum word count for the generated content. Defaults to 100.
+    min_word_count (int, optional): The minimum word count for the generated content. Defaults to 75.
+    model (str, optional): The model to use for content generation. Defaults to "gpt-4o".
+
+    Returns:
+    str: The generated content.
+    """
 
     response = hlt.generate_prompt(
         client,
@@ -32,6 +54,7 @@ def generate_content(container,
         prompt_name=prompt_name,
         temperature=temperature,
         max_tokens=max_tokens,
+        max_allowable_tokens=max_allowable_tokens,
         additional_content=additional_content,
         model=model
     )
@@ -46,10 +69,8 @@ def generate_content(container,
         reduction_prompt = hlt.prompt_queue["reduce_wordcount"].format(min_word_count, max_word_count, response)
 
         messages = [
-            {"role": "system",
-                "content": hlt.prompt_queue["system"]},
-            {"role": "user",
-                "content": reduction_prompt}
+            {"role": "system", "content": hlt.prompt_queue["system"]},
+            {"role": "user", "content": reduction_prompt}
         ]
 
         reduced_response = client.chat.completions.create(
@@ -260,11 +281,13 @@ if uploaded_file is not None:
     title_container.markdown("Set desired temperature:")
 
     # title slider
-    title_temperature = title_container.slider("Title Temperature",
-                                               0.0,
-                                               1.0,
-                                               0.2,
-                                               label_visibility="collapsed")
+    title_temperature = title_container.slider(
+        "Title Temperature",
+        0.0,
+        1.0,
+        0.2,
+        label_visibility="collapsed"
+    )
 
     # build container content
     if title_container.button('Generate Title'):
@@ -277,16 +300,19 @@ if uploaded_file is not None:
             max_tokens=50,
             temperature=title_temperature,
             box_height=50,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
     else:
         if st.session_state.title_response is not None:
             title_container.markdown("Title Result:")
-            title_container.text_area(label="Title Result:",
-                                      value=st.session_state.title_response,
-                                      label_visibility="collapsed",
-                                      height=50)
+            title_container.text_area(
+                label="Title Result:",
+                value=st.session_state.title_response,
+                label_visibility="collapsed",
+                height=50
+            )
 
     # subtitle section
     subtitle_container = st.container()
@@ -329,6 +355,7 @@ if uploaded_file is not None:
                 additional_content=st.session_state.title_response,
                 max_word_count=100,
                 min_word_count=75,
+                max_allowable_tokens=st.session_state.max_allowable_tokens,
                 model=st.session_state.model
             )
 
@@ -387,6 +414,7 @@ if uploaded_file is not None:
             box_height=250,
             max_word_count=100,
             min_word_count=75,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
@@ -445,6 +473,7 @@ if uploaded_file is not None:
             box_height=250,
             max_word_count=100,
             min_word_count=75,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
@@ -499,6 +528,7 @@ if uploaded_file is not None:
             box_height=400,
             max_word_count=200,
             min_word_count=100,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
@@ -540,6 +570,7 @@ if uploaded_file is not None:
                 max_tokens=200,
                 temperature=figure_temperature,
                 box_height=200,
+                max_allowable_tokens=st.session_state.max_allowable_tokens,
                 model=st.session_state.model
             )
 
@@ -584,6 +615,7 @@ if uploaded_file is not None:
                 max_tokens=300,
                 temperature=figure_temperature,
                 box_height=200,
+                max_allowable_tokens=st.session_state.max_allowable_tokens,
                 model=st.session_state.model
             ).replace('"', "")
 
@@ -610,6 +642,7 @@ if uploaded_file is not None:
             max_tokens=300,
             temperature=0.0,
             box_height=200,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         ).replace('"', "")
 
@@ -635,6 +668,7 @@ if uploaded_file is not None:
             max_tokens=300,
             temperature=0.0,
             box_height=200,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         ).replace('"', "")
 
@@ -718,6 +752,7 @@ if uploaded_file is not None:
             max_tokens=300,
             temperature=objective_temperature,
             box_height=250,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
@@ -766,6 +801,7 @@ if uploaded_file is not None:
             temperature=approach_temperature,
             box_height=250,
             additional_content=st.session_state.objective_response,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
@@ -813,6 +849,7 @@ if uploaded_file is not None:
             max_tokens=300,
             temperature=ppt_impact_temperature,
             box_height=250,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
@@ -860,6 +897,7 @@ if uploaded_file is not None:
             max_tokens=300,
             temperature=ppt_figure_selection_temperature,
             box_height=250,
+            max_allowable_tokens=st.session_state.max_allowable_tokens,
             model=st.session_state.model
         )
 
