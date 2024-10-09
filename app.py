@@ -98,7 +98,17 @@ if "search_phrase" not in st.session_state:
     st.session_state.search_phrase = None
 
 if "point_of_contact" not in st.session_state:
-    st.session_state.point_of_contact = "Jennie Rice\nIM3 Principal Investigator\njennie.rice@pnnl.gov"
+    st.session_state.point_of_contact = None
+
+if "project_dict" not in st.session_state:
+    st.session_state.project_dict = {
+        "IM3": "Jennie Rice\nIM3 Principal Investigator\njennie.rice@pnnl.gov",
+        "GCIMS": "Marshall Wise\nGCIMS Principal Investigator\nmarshall.wise@pnnl.gov",
+        "COMPASS-GLM": "Robert Hetland\nCOMPASS-GLM Principal Investigator\nrobert.hetland@pnnl.gov",
+        "ICoM": "Ian Kraucunas\nICoM Principal Investigator\nian.kraucunas@pnnl.gov",
+        "Puget Sound": "Ning Sun\nPuget Sound Scoping and Pilot Study Principal Investigator\nning.sun@pnnl.gov",
+        "Other": "First and Last Name\nCorresponding Project Name with POC Credentials\nEmail Address",
+    }
 
 # Force responsive layout for columns also on mobile
 st.write(
@@ -621,6 +631,36 @@ if uploaded_file is not None:
                 height=200
             )
 
+    # point of contact box
+    poc_container = st.container()
+    poc_container.markdown("##### Point of contact for the research by project")
+
+    # select the POC information from the dropdown
+    st.session_state.point_of_contact = st.session_state.project_dict[
+            poc_container.selectbox(
+            label="Select the project who funded the work:",
+            options=[
+                "COMPASS-GLM", 
+                "GCIMS", 
+                "ICoM",
+                "IM3",
+                "Puget Sound",
+                "Other",
+            ]
+        )
+    ]
+
+    
+    poc_container.write("What will be written to the document as the point of contact:")
+    poc_parts = st.session_state.point_of_contact.split("\n")
+    poc_container.success(
+        f"""
+        {poc_parts[0]}\n
+        {poc_parts[1]}\n
+        {poc_parts[2]}\n
+        """
+    )
+
     export_container = st.container()
     export_container.markdown("##### Export Word document with new content when ready")
 
@@ -681,7 +721,7 @@ if uploaded_file is not None:
         1.0,
         0.3,
         label_visibility="collapsed"
-)
+    )
 
     # build container content
     if objective_container.button('Generate Objective'):
@@ -856,108 +896,104 @@ if uploaded_file is not None:
                 height=250
             )
 
+    # Add PowerPoint export container at the end
+    export_ppt_container = st.container()
+    export_ppt_container.markdown("##### Export PowerPoint Presentation with New Content")
 
-# ppt_template_file = importlib.resources.files('highlight.data').joinpath('highlight_template.pptx')
+    if ("title_response" in st.session_state and
+        "objective_response" in st.session_state and
+        "ppt_impact_response" in st.session_state and
+        "approach_response" in st.session_state):
 
+        if export_ppt_container.button('Export PowerPoint'):
 
-# Add PowerPoint export container at the end
-export_ppt_container = st.container()
-export_ppt_container.markdown("##### Export PowerPoint Presentation with New Content")
+            try:
+                # Load the PowerPoint template
+                ppt_template_file = importlib.resources.files('highlight.data').joinpath('highlight_template.pptx')
+                prs = Presentation(ppt_template_file)
 
-if ("title_response" in st.session_state and
-    "objective_response" in st.session_state and
-    "ppt_impact_response" in st.session_state and
-    "approach_response" in st.session_state):
+                # Split the impact and approach responses into bullet points (assuming they are separated by newlines)
+                impact_points = st.session_state.ppt_impact_response.split("\n")
+                approach_points = st.session_state.approach_response.split("\n")
 
-    if export_ppt_container.button('Export PowerPoint'):
+                # Iterate over all slides to find the text boxes labeled "impact_0", "impact_1", "impact_2"
+                for slide in prs.slides:
+                    for shape in slide.shapes:
+                        if shape.has_text_frame:
+                            # Handle title insertion and maintain font size and bold
+                            if "title" in shape.text_frame.text:
+                                shape.text_frame.text = st.session_state.title_response
 
-        try:
-            # Load the PowerPoint template
-            ppt_template_file = importlib.resources.files('highlight.data').joinpath('highlight_template.pptx')
-            prs = Presentation(ppt_template_file)
+                                # Ensure font size and bold settings are maintained for each paragraph
+                                for paragraph in shape.text_frame.paragraphs:
+                                    for run in paragraph.runs:
+                                        run.font.size = Pt(24)  # Example size, adjust as needed
+                                        run.font.bold = True  # Maintain bold
+                                        run.alignment = PP_ALIGN.LEFT  # Align title
 
-            # Split the impact and approach responses into bullet points (assuming they are separated by newlines)
-            impact_points = st.session_state.ppt_impact_response.split("\n")
-            approach_points = st.session_state.approach_response.split("\n")
+                            # Handle citation insertion and maintain font size and bold
+                            if "citation" in shape.text_frame.text:
+                                shape.text_frame.text = st.session_state.citation
 
-            # Iterate over all slides to find the text boxes labeled "impact_0", "impact_1", "impact_2"
-            for slide in prs.slides:
-                for shape in slide.shapes:
-                    if shape.has_text_frame:
-                        # Handle title insertion and maintain font size and bold
-                        if "title" in shape.text_frame.text:
-                            shape.text_frame.text = st.session_state.title_response
+                                # Ensure font size and bold settings are maintained for each paragraph
+                                for paragraph in shape.text_frame.paragraphs:
+                                    for run in paragraph.runs:
+                                        run.font.size = Pt(11)  # Example size for citation, adjust as needed
+                                        run.font.bold = False  # Citation typically isn't bold
+                                        run.alignment = PP_ALIGN.LEFT  # Align citation
 
-                            # Ensure font size and bold settings are maintained for each paragraph
-                            for paragraph in shape.text_frame.paragraphs:
-                                for run in paragraph.runs:
-                                    run.font.size = Pt(24)  # Example size, adjust as needed
-                                    run.font.bold = True  # Maintain bold
-                                    run.alignment = PP_ALIGN.LEFT  # Align title
+                            if shape.text_frame.text == "objective_0":
+                                # Set the text of the text box to the objective response
+                                shape.text_frame.text = st.session_state.objective_response
 
-                        # Handle citation insertion and maintain font size and bold
-                        if "citation" in shape.text_frame.text:
-                            shape.text_frame.text = st.session_state.citation
+                                # Optional: Adjust font size and alignment for the objective
+                                for paragraph in shape.text_frame.paragraphs:
+                                    paragraph.font.size = Pt(13)  # Set font size
+                                    paragraph.alignment = PP_ALIGN.LEFT  # Set alignment
 
-                            # Ensure font size and bold settings are maintained for each paragraph
-                            for paragraph in shape.text_frame.paragraphs:
-                                for run in paragraph.runs:
-                                    run.font.size = Pt(11)  # Example size for citation, adjust as needed
-                                    run.font.bold = False  # Citation typically isn't bold
-                                    run.alignment = PP_ALIGN.LEFT  # Align citation
+                            # Handle approach bullet points
+                            if "approach_0" in shape.text_frame.text:
+                                # Clear existing paragraphs in the text frame
+                                shape.text_frame.clear()
 
-                        if shape.text_frame.text == "objective_0":
-                            # Set the text of the text box to the objective response
-                            shape.text_frame.text = st.session_state.objective_response
+                                # Add bullet points for approach
+                                for i, approach_point in enumerate(approach_points[:3]):  # Only take the first 3 approach points
+                                    p = shape.text_frame.add_paragraph()
+                                    p.text = approach_point
+                                    p.level = 0  # This sets it as a bullet point
+                                    p.font.size = Pt(13)  # Adjust bullet point font size
+                                    p.alignment = PP_ALIGN.LEFT  # Align bullet points
 
-                            # Optional: Adjust font size and alignment for the objective
-                            for paragraph in shape.text_frame.paragraphs:
-                                paragraph.font.size = Pt(13)  # Set font size
-                                paragraph.alignment = PP_ALIGN.LEFT  # Set alignment
+                            # Handle the impact bullet points in the same text box
+                            if "impact_0" in shape.text_frame.text:
+                                # Clear the existing paragraphs
+                                shape.text_frame.clear()
 
-                        # Handle approach bullet points
-                        if "approach_0" in shape.text_frame.text:
-                            # Clear existing paragraphs in the text frame
-                            shape.text_frame.clear()
+                                # Add bullet points for impact
+                                for i, impact_point in enumerate(impact_points[:3]):  # Only take the first 3 impact points
+                                    p = shape.text_frame.add_paragraph()
+                                    p.text = impact_point
+                                    p.level = 0  # This sets it as a bullet point
+                                    p.font.size = Pt(13)  # Adjust bullet point font size
+                                    p.alignment = PP_ALIGN.LEFT  # Align bullet points
 
-                            # Add bullet points for approach
-                            for i, approach_point in enumerate(approach_points[:3]):  # Only take the first 3 approach points
-                                p = shape.text_frame.add_paragraph()
-                                p.text = approach_point
-                                p.level = 0  # This sets it as a bullet point
-                                p.font.size = Pt(13)  # Adjust bullet point font size
-                                p.alignment = PP_ALIGN.LEFT  # Align bullet points
+                # Save the modified presentation to a BytesIO object
+                ppt_io = io.BytesIO()
+                prs.save(ppt_io)
+                ppt_io.seek(0)
 
-                        # Handle the impact bullet points in the same text box
-                        if "impact_0" in shape.text_frame.text:
-                            # Clear the existing paragraphs
-                            shape.text_frame.clear()
+                # Provide a download button for the user
+                export_ppt_container.download_button(
+                    label="Export PowerPoint Presentation",
+                    data=ppt_io,
+                    file_name="modified_highlight_template.pptx",
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                )
 
-                            # Add bullet points for impact
-                            for i, impact_point in enumerate(impact_points[:3]):  # Only take the first 3 impact points
-                                p = shape.text_frame.add_paragraph()
-                                p.text = impact_point
-                                p.level = 0  # This sets it as a bullet point
-                                p.font.size = Pt(13)  # Adjust bullet point font size
-                                p.alignment = PP_ALIGN.LEFT  # Align bullet points
+                export_ppt_container.success("PowerPoint presentation generated successfully!", icon="✅")
 
-            # Save the modified presentation to a BytesIO object
-            ppt_io = io.BytesIO()
-            prs.save(ppt_io)
-            ppt_io.seek(0)
+            except Exception as e:
+                export_ppt_container.error(f"An error occurred while generating the PowerPoint: {e}", icon="🚨")
 
-            # Provide a download button for the user
-            export_ppt_container.download_button(
-                label="Export PowerPoint Presentation",
-                data=ppt_io,
-                file_name="modified_highlight_template.pptx",
-                mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            )
-
-            export_ppt_container.success("PowerPoint presentation generated successfully!", icon="✅")
-
-        except Exception as e:
-            export_ppt_container.error(f"An error occurred while generating the PowerPoint: {e}", icon="🚨")
-
-else:
-    export_ppt_container.error("Please generate the objective and impact responses before exporting.", icon="⚠️")
+    else:
+        export_ppt_container.error("Please generate the objective and impact responses before exporting.", icon="⚠️")
