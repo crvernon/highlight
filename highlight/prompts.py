@@ -38,11 +38,13 @@ prompt_queue = {
     - Provide information that will make the audience want to find out more about the research.
     - Do not use more than 155 characters including spaces.
     - Return only the subtitle.
+    - Only capitalize the first letter of the starting word in the sentence unless the word is a proper noun.
+    - Add a period at the end of the response.
     
     The following is an example to use for formatting only.  Do not use it in the response.  \
     The example is delimited by three pound signs.
     ###
-    Exploring the Intricate Dynamics of Urban-Rural Relationships and Their Impact on Land Use Change
+    Exploring the intricate dynamics of urban-rural relationships and their impact on land use change.
     ###
 
     The following is the input text delimited by triple backticks.  Do not use colons in the response.
