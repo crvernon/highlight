@@ -46,4 +46,7 @@ Repository = "https://github.com/crvernon/highlight"
 
 [tool.hatch.build]
 packages = ["highlight"]  # set importable package name to "cerf"
-include = ["highlight"]
+include = [
+    "highlight",
+    "highlight/data/**",
+]

@@ -144,7 +144,7 @@ prompt_queue = {
     with two pound signs and ends with four pound signs:
     ##
     TEXT: {0}
-    RESPONSE: Defines key terms and concepts for the field of MultiSector Dynamics and identifies important science questions driving the field forward.
+    RESPONSE: Define key terms and concepts for the field of MultiSector Dynamics and identifies important science questions driving the field forward.
     ###
     TEXT: {1}
     RESPONSE: Understand the effects of temperature and drought extremes on the Western U.S. power grid, while taking into account the increasing penetration of variable renewable energy sources, using a high-resolution operational power system model.
@@ -157,18 +157,20 @@ prompt_queue = {
     "approach": """Clearly and concisely state in 2-3 short points how this work accomplished the stated objective from a methodolgocial perspecive. 
     - Do not restate the objective or include results.
     - Only include methodology including but not limited to: statistical, technological, and theory based approaches. 
-    - Here is the objective statement: {2} 
+    - Here is the objective statement: {1} 
     - Use a different action verb to start sentences than what is used to begin the objective statement.
     - Use active verbs for the start of each point.  
     - Use present tense.
     - Format the results as a hyphen-separated list.
-
-    TEXT: {0}
+    - The response must be in a hyphen-separated list.
+  
+    # Example response for the purposes of formatting
     RESPONSE:
     - Evaluate contemporary and hypothesized Western U.S. infrastructures with variable renewable generation shares for sensitivity to drought and Southern California heat wave scenarios on generation and load.
     - Use a stochastic temperature simulation combined with spatially resolved historical drought as a toolset to incorporate other grid stressors in high-resolution power system models, leading to improved sensitivity analyses not limited by the current ability of climate models to capture extreme conditions.
-    ### 
-    TEXT: {1}
+    
+    # Input to process
+    TEXT: {0}
     RESPONSE:
     """,
 
@@ -178,7 +180,16 @@ prompt_queue = {
     - Each point should be 1 concise sentence.
     - Use present tense.
     - Format the results as a hyphen-separated list.
+    - The response must be in a hyphen-separated list.
+    - Do not start sentences with 'The'.
 
+    # Example response for the purposes of formatting
+    RESPONSE:
+    - Incorporation of adaptive farmer agents in a large-scale hydrological model reduces US-wide annual water shortages by up to 42%.
+    - Farmer adaptation primarily occurs through the contraction of irrigated crop areas, with crop switching playing a secondary role.
+    - Sensitivity analysis shows that the impact of farmer adaptation on water shortage outcomes is robust across different assumptions of agent memory.
+
+    # Input to process
     TEXT: {0}
     RESPONSE:
     """,
@@ -196,12 +207,12 @@ prompt_queue = {
     RESPONSE:
     """,
 
-    "figure_choice": """What figure best represents the high impact content that can be easily understood by a non-technical, non-scientifc audience.
+    "figure_choice": """What figure from the results of the paper best represents the high impact content that can be easily understood by a non-technical, non-scientifc audience.
     Limit the response to:
     1. The figure name as it is written in the text,
     2. An explanation of why it was chosen,
     3. What the figure is about as a figure caption in less than 50 words. Use the figure name in the caption.  Start this point with the phrase "CAPTION:  "
-        
+
     TEXT: {0}
     RESPONSE:
     """,
