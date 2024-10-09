@@ -97,6 +97,9 @@ if "citation" not in st.session_state:
 if "search_phrase" not in st.session_state:
     st.session_state.search_phrase = None
 
+if "point_of_contact" not in st.session_state:
+    st.session_state.point_of_contact = "Jennie Rice\nIM3 Principal Investigator\njennie.rice@pnnl.gov"
+
 # Force responsive layout for columns also on mobile
 st.write(
     """<style>
@@ -634,7 +637,8 @@ if uploaded_file is not None:
         'summary': st.session_state.summary_response,
         'funding': st.session_state.funding,
         'citation': st.session_state.citation,
-        'related_links': st.session_state.related_links
+        'related_links': st.session_state.related_links,
+        'point_of_contact': st.session_state.point_of_contact,
     }
 
     # template word document
@@ -898,7 +902,7 @@ if ("title_response" in st.session_state and
                             # Ensure font size and bold settings are maintained for each paragraph
                             for paragraph in shape.text_frame.paragraphs:
                                 for run in paragraph.runs:
-                                    run.font.size = Pt(12)  # Example size for citation, adjust as needed
+                                    run.font.size = Pt(11)  # Example size for citation, adjust as needed
                                     run.font.bold = False  # Citation typically isn't bold
                                     run.alignment = PP_ALIGN.LEFT  # Align citation
 
@@ -908,7 +912,7 @@ if ("title_response" in st.session_state and
 
                             # Optional: Adjust font size and alignment for the objective
                             for paragraph in shape.text_frame.paragraphs:
-                                paragraph.font.size = Pt(14)  # Set font size
+                                paragraph.font.size = Pt(13)  # Set font size
                                 paragraph.alignment = PP_ALIGN.LEFT  # Set alignment
 
                         # Handle approach bullet points
@@ -921,7 +925,7 @@ if ("title_response" in st.session_state and
                                 p = shape.text_frame.add_paragraph()
                                 p.text = approach_point
                                 p.level = 0  # This sets it as a bullet point
-                                p.font.size = Pt(14)  # Adjust bullet point font size
+                                p.font.size = Pt(13)  # Adjust bullet point font size
                                 p.alignment = PP_ALIGN.LEFT  # Align bullet points
 
                         # Handle the impact bullet points in the same text box
@@ -934,7 +938,7 @@ if ("title_response" in st.session_state and
                                 p = shape.text_frame.add_paragraph()
                                 p.text = impact_point
                                 p.level = 0  # This sets it as a bullet point
-                                p.font.size = Pt(14)  # Adjust bullet point font size
+                                p.font.size = Pt(13)  # Adjust bullet point font size
                                 p.alignment = PP_ALIGN.LEFT  # Align bullet points
 
             # Save the modified presentation to a BytesIO object

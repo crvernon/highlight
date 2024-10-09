@@ -314,7 +314,6 @@ def generate_prompt(
         if additional_content is None:
             additional_content = content
         prompt = prompts.prompt_queue[prompt_name].format(
-            prompts.EXAMPLE_TEXT_TWO, 
             content, 
             additional_content
         )
@@ -327,15 +326,14 @@ def generate_prompt(
             additional_content
         )
 
-
     elif prompt_name in (
         "figure", 
         "caption", 
         "impact", 
         "summary", 
-        "ppt_impact", 
         "title", 
         "science", 
+        "ppt_impact",
         "figure_caption", 
         "figure_choice", 
         "citation",
