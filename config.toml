@@ -1,0 +1,15 @@
+[llm]
+[llm.openai]
+models = ["gpt-4o", "gpt-4", "gpt-3.5-turbo-16k", "gpt-3.5-turbo"]
+
+[llm.openai.gpt-4o]
+max_allowable_tokens = 150000
+
+[llm.openai.gpt-4]
+max_allowable_tokens = 8192
+
+[llm.openai.gpt-3.5-turbo]
+max_allowable_tokens = 4096
+
+[llm.openai.gpt-3.5-turbo-16k]
+max_allowable_tokens = 16384
