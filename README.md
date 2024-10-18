@@ -6,24 +6,6 @@
 
 #### Generate publication highlights using AI
 
-### Setting Up OpenAI API Key
-
-To use the OpenAI API, you need to set up an API key and set it as an environment variable.
-
-1. Obtain your OpenAI API key from the [OpenAI website](https://platform.openai.com/api-keys).
-
-2. Set the API key as an environment variable:
-    - On Windows:
-        ```bash
-        set OPENAI_API_KEY=your_api_key_here
-        ```
-    - On macOS and Linux:
-        ```bash
-        export OPENAI_API_KEY=your_api_key_here
-        ```
-
-Replace `your_api_key_here` with your actual OpenAI API key.
-
 ### Installation
 
 #### Clone this repository
@@ -69,10 +51,43 @@ To install this Python package in a virtual environment, you can use either pip 
     conda activate highlight_env
     ```
 
-3. Install the package from the cloned `highlight` directory:
+3. Install the package from the cloned `highlight` directory.
     ```bash
     pip install .
     ```
+    By default, only OpenAI's models are supported. You can add support for other providers by installing one ore more of the package's optional dependencies:
+    ```bash
+    pip install ".[anthropic, dartmouth, ollama]"
+    ```
+    **Note:** Support for models provided by Dartmouth requires Python 3.10 or higher.
+
+### Configuring the LLMs
+You can configure a variety of LLMs, both remote and local, to choose from in the app. To do this, edit the file `config.toml` in the root of this repo.
+
+#### Setting Up API Keys
+If any of the configured models require an API key, you need to set them up as Streamlit secrets.
+
+First, you have the acquire the API key from the provider of your choice (e.g., [OpenAI](https://platform.openai.com/api-keys) or [Anthropic](https://console.anthropic.com/settings/keys)).
+
+Then, create a folder named `.streamlit` in the root of this repo. Inside that folder, create a file named `secrets.toml`.
+
+Finally, store your API key(s) in the following format:
+
+```toml
+KEY_NAME = "your_api_key_here"
+```
+
+Replace `KEY_NAME` with the variable name corresponding to your provider:
+
+| Provider    | Variable name       |
+| --------    | -------             |
+| Anthropic   | `ANTHROPIC_API_KEY` |
+| Dartmouth   | `DARTMOUTH_API_KEY` |
+| OpenAI      | `OPENAI_API_KEY`    |
+
+
+Replace `your_api_key_here` with your actual API key.
+
 
 ### Running the App
 
