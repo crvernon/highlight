@@ -46,7 +46,7 @@ ollama = [
 ]
 
 dartmouth = [
-    "langchain_dartmouth>="
+    "langchain_dartmouth>=0.2.11"
 ]
 
 [project.urls]
