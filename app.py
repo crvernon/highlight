@@ -6,7 +6,7 @@ from docxtpl import DocxTemplate
 from pptx import Presentation
 from pptx.util import Pt
 from pptx.enum.text import PP_ALIGN
-from openai import OpenAI
+
 import streamlit as st
 
 import highlight as hlt
@@ -14,18 +14,6 @@ import highlight as hlt
 if "config" not in st.session_state:
     st.session_state["config"] = hlt.read_config("config.toml")
 
-
-if "client" not in st.session_state:
-    key = os.getenv("OPENAI_API_KEY", default=None)
-    if key is None:
-        raise KeyError(
-            (
-                "No key found for 'OPENAI_API_KEY' system variable. "
-                + "Obtain your OpenAI API key from the OpenAI website: https://platform.openai.com/api-keys"
-            )
-        )
-    else:
-        st.session_state.client = OpenAI(api_key=key)
 
 if "reduce_document" not in st.session_state:
     st.session_state.reduce_document = False
@@ -145,7 +133,10 @@ st.session_state.max_allowable_tokens = st.session_state.config["llm"][
     st.session_state.provider
 ][st.session_state.model]["max_allowable_tokens"]
 
-# set api key
+st.session_state.client = hlt.llm.get_llm(
+    st.session_state.provider,
+    max_context_length=st.session_state.max_allowable_tokens,
+)
 
 st.markdown("### Upload file to process:")
 uploaded_file = st.file_uploader(

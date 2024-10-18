@@ -8,8 +8,23 @@ max_allowable_tokens = 150000
 [llm.openai.gpt-4]
 max_allowable_tokens = 8192
 
-[llm.openai.gpt-3.5-turbo]
+[llm.openai."gpt-3.5-turbo"]
 max_allowable_tokens = 4096
 
-[llm.openai.gpt-3.5-turbo-16k]
+[llm.openai."gpt-3.5-turbo-16k"]
 max_allowable_tokens = 16384
+
+[llm.ollama]
+models = ["llama3.2:latest", "llama3.1:latest"]
+
+[llm.ollama."llama3.2:latest"]
+max_allowable_tokens = 128000
+
+[llm.ollama."llama3.1:latest"]
+max_allowable_tokens = 128000
+
+[llm.dartmouth]
+models = ["llama-3-1-8b-instruct"]
+
+[llm.dartmouth."llama-3-1-8b-instruct"]
+max_allowable_tokens = 95000

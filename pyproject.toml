@@ -24,6 +24,7 @@ dependencies = [
     'pypdf>=3.0.1',
     'tiktoken>=0.7.0',
     'tqdm>=4.66.1',
+    'langchain_openai>=0.2.2'
 ]
 classifiers = [
   "Programming Language :: Python :: 3.9",
@@ -39,6 +40,13 @@ test = [
 
 deploy = [
     "twine>=4.0.1",
+]
+ollama = [
+    "langchain_ollama>=0.2.0"
+]
+
+dartmouth = [
+    "langchain_dartmouth>="
 ]
 
 [project.urls]

@@ -138,15 +138,15 @@ def content_reduction(client, document_list, system_scope, model):
         page_tokens = get_token_count(page_content)
 
         messages = [
-            {"role": "system", "content": system_scope},
-            {"role": "user", "content": prompt.format(text=page_content)},
+            ("system", system_scope),
+            ("user", prompt.format(text=page_content)),
         ]
 
-        response = client.chat.completions.create(
-            model=model, max_tokens=page_tokens, temperature=0.0, messages=messages
-        )
+        response = client.with_config(
+            configurable={"model": model, "max_tokens": page_tokens, "temperature": 0.0}
+        ).invoke(messages)
 
-        content += response.choices[0].message.content
+        content += response.content
 
     return content
 
@@ -190,15 +190,19 @@ def generate_prompt_content(
         )
 
     messages = [
-        {"role": "system", "content": system_scope},
-        {"role": "user", "content": prompt},
+        ("system", system_scope),
+        ("user", prompt),
     ]
 
-    response = client.chat.completions.create(
-        model=model, max_tokens=max_tokens, temperature=temperature, messages=messages
-    )
+    response = client.with_config(
+        configurable={
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+        }
+    ).invoke(messages)
 
-    content = response.choices[0].message.content
+    content = response.content
 
     return content
 
@@ -262,18 +266,19 @@ def generate_content(
         )
 
         messages = [
-            {"role": "system", "content": prompts.prompt_queue["system"]},
-            {"role": "user", "content": reduction_prompt},
+            ("system", prompts.prompt_queue["system"]),
+            ("user", reduction_prompt),
         ]
 
-        reduced_response = client.chat.completions.create(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            messages=messages,
-        )
+        reduced_response = client.with_config(
+            configurable={
+                "model": model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+            }
+        ).invoke(messages)
 
-        response = reduced_response.choices[0].message.content
+        response = reduced_response.content
 
     container.text_area(
         label=result_title,
