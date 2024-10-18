@@ -51,10 +51,15 @@ To install this Python package in a virtual environment, you can use either pip 
     conda activate highlight_env
     ```
 
-3. Install the package from the cloned `highlight` directory:
+3. Install the package from the cloned `highlight` directory.
     ```bash
     pip install .
     ```
+    By default, only OpenAI's models are supported. You can add support for other providers by installing one ore more of the package's optional dependencies:
+    ```bash
+    pip install ".[anthropic, dartmouth, ollama]"
+    ```
+    **Note:** Support for models provided by Dartmouth requires Python 3.10 or higher.
 
 ### Configuring the LLMs
 You can configure a variety of LLMs, both remote and local, to choose from in the app. To do this, edit the file `config.toml` in the root of this repo.

@@ -48,7 +48,7 @@ ollama = [
 ]
 
 dartmouth = [
-    "langchain_dartmouth>=0.2.11"
+    "langchain_dartmouth>=0.2.11; python_version > '3.9'"
 ]
 
 anthropic = [

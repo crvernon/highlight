@@ -6,6 +6,7 @@ import streamlit as st
 import highlight.prompts as prompts
 
 from pathlib import Path
+from typing import Union
 
 try:
     import tomllib
@@ -32,7 +33,7 @@ def get_token_count(text, model="gpt-4o"):
     return n_text_tokens
 
 
-def read_config(config_file: str | Path) -> dict:
+def read_config(config_file: Union[str, Path]) -> dict:
     """
     Read the configuration file and return its contents as a dictionary.
 
