@@ -1,4 +1,21 @@
 [llm]
+
+[llm.anthropic]
+models = ["claude-3-5-sonnet-20240620", "claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"]
+
+[llm.anthropic.claude-3-5-sonnet-20240620]
+max_allowable_tokens = 200000
+
+[llm.anthropic.claude-3-opus-20240229]
+max_allowable_tokens = 200000
+
+[llm.anthropic.claude-3-sonnet-20240229]
+max_allowable_tokens = 200000
+
+[llm.anthropic.claude-3-haiku-20240307]
+max_allowable_tokens = 200000
+
+
 [llm.openai]
 models = ["gpt-4o", "gpt-4", "gpt-3.5-turbo-16k", "gpt-3.5-turbo"]
 
@@ -15,9 +32,9 @@ max_allowable_tokens = 4096
 max_allowable_tokens = 16384
 
 [llm.ollama]
-models = ["llama3.2:latest", "llama3.1:latest"]
+models = ["llama3.2:1b", "llama3.1:latest"]
 
-[llm.ollama."llama3.2:latest"]
+[llm.ollama."llama3.2:1b"]
 max_allowable_tokens = 128000
 
 [llm.ollama."llama3.1:latest"]

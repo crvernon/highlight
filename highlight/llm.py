@@ -6,7 +6,16 @@ def get_llm(
     provider: Literal["openai", "ollama", "dartmouth"], max_context_length: int
 ) -> Runnable:
     """Returns a LangChain Runnable interfacing with the specified provider"""
-    if provider == "openai":
+    if provider == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+
+        return ChatAnthropic(model_name="not-specified").configurable_fields(
+            model=ConfigurableField(id="model"),
+            max_tokens=ConfigurableField(id="max_tokens"),
+            temperature=ConfigurableField(id="temperature"),
+        )
+
+    elif provider == "openai":
         from langchain_openai import ChatOpenAI
 
         return ChatOpenAI().configurable_fields(
