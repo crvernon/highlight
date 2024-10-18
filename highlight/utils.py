@@ -6,7 +6,11 @@ import streamlit as st
 import highlight.prompts as prompts
 
 from pathlib import Path
-import tomllib
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 
 def get_token_count(text, model="gpt-4o"):
